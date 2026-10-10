@@ -9,3 +9,6 @@ dist/
 paper/*.aux
 paper/*.log
 paper/*.out
+
+paper/*.pdf
+!paper/paper.pdf

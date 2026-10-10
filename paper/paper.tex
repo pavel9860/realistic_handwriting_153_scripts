@@ -211,6 +211,21 @@ error rate of Tesseract~\cite{smith2007} on English lines.
 
 \input{results}
 
+\paragraph{Analysis.}
+All model-based systems close about half of the gap between font rendering and real handwriting (embedding FD
+0.245--0.259 against 0.453 for fonts and 0.065 for real handwriting of other documents), and they triple the
+precision. The remaining gap is large, and recall stays low (1--6\,\%). The real scans span archives, coloured
+paper, faded ink and scanner artefacts that clean synthetic lines on near-white paper do not cover, so recall
+measures the page model as much as the handwriting. Evolution adds less realism than the models do (0.383 against
+0.331 for the type priors), but it makes the types much more distinguishable: type identification rises from
+37\,\% to 49\,\% with contour-hinge features and from 38\,\% to 52\,\% with path signatures, against 5\,\% chance,
+while individuals stay identifiable (31--49\,\% against 1.25\,\%). Removing the pen model, the shape variation or the
+letter joins each lowers realism and precision. Movement energy rises strictly with the effort of the styles, from
+medical ($1.3\times10^{-7}$) to calligraphic ($3.1\times10^{-5}$), and the turning entropy rises with it. Accurate
+writing is the most legible of the styles for Tesseract (CER 0.21) and medical writing the least (0.69). Messy
+styles score higher realism than formal ones because the references are dominated by everyday handwriting.
+Generation takes about 150\,ms per line on one CPU core.
+
 % ---------------------------------------------------------------------------------------------------------------
 \section{Discussion and Limitations}
 \label{sec:discussion}

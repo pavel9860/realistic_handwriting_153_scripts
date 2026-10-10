@@ -104,4 +104,4 @@ Unicode data under the Unicode License.
 
 ## Citation
 
-See `paper/` and `CITATION.cff`.
+Paper: [paper/paper.pdf](paper/paper.pdf). See also `CITATION.cff`.
