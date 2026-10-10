@@ -1,6 +1,7 @@
 """Font index: handwriting fonts (manifest) first, Noto and system fonts as fallback; per-script candidate lists."""
 
 import json
+import unicodedata
 import pickle
 from functools import lru_cache
 from pathlib import Path
@@ -84,7 +85,9 @@ class FontIndex:
             own = self.meta[f].get("own")
             return (not own or script in own) and sum(ord(c) in self.cmap[f] for c in core) >= need
 
-        hand = [f for f in self.hand if ok(f)]
+        childish = cls.endswith("+childish")
+        cls = cls.removesuffix("+childish")
+        hand = [f for f in self.hand if ok(f) and (childish or not self.meta[f].get("childish"))]
         if cls != "any":
             hand = [f for f in hand if self.meta[f].get("class") == cls] or hand
         return tuple(hand) or tuple(f for f in self.fallback if ok(f))
@@ -123,10 +126,14 @@ def core_letters(script):
         "Greek": "αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ",
         "Han": "的一是不了人我在有他这中大来上国个到说们为子和你地出道也时年得就那要下以生会自着去之过家学对可",
         "Hangul": "가나다라마바사아자차카타파하한글이는을를에서의고하다",
+        "Arabic": "ابتثجحخدذرزسشصضطظعغفقكلمنهوي",
+        "Hiragana": "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん",
+        "Katakana": "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン",
+        "Syriac": "ܐܒܓܕܗܘܙܚܛܝܟܠܡܢܣܥܦܨܩܪܫܬ",
     }
     if script in basic:
         return basic[script]
-    ls = [c for c in letters(script) if c.isalpha()]
+    ls = [c for c in letters(script) if c.isalpha() and not unicodedata.decomposition(c)]  # base letters only
     if script in REF and REF[script][0] not in ls:
         ls.insert(0, REF[script][0])
     if len(ls) > 48:

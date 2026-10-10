@@ -1,5 +1,5 @@
 {
- "note": "Handwriting fonts (class: cursive, print, brush; own: scripts the font is limited to; prefer: share of writers of a script that use one of the preferred fonts) and Noto Sans fallbacks. Fetched by scripts/fetch_fonts.py.",
+ "note": "Handwriting fonts (class: cursive, print, brush; own: scripts the font is limited to; prefer: share of writers of a script that use one of the preferred fonts) and Noto Sans fallbacks. childish: only for the child type and the uneducated style. Fetched by scripts/fetch_fonts.py.",
  "fonts": [
   {
    "file": "Caveat[wght].ttf",
@@ -38,7 +38,8 @@
    "file": "Pangolin-Regular.ttf",
    "url": "https://github.com/google/fonts/raw/main/ofl/pangolin/Pangolin-Regular.ttf",
    "license": "OFL-1.1",
-   "class": "print"
+   "class": "print",
+   "childish": true
   },
   {
    "file": "ShantellSans[BNCE,INFM,SPAC,wght].ttf",
@@ -62,19 +63,22 @@
    "file": "IndieFlower-Regular.ttf",
    "url": "https://github.com/google/fonts/raw/main/ofl/indieflower/IndieFlower-Regular.ttf",
    "license": "OFL-1.1",
-   "class": "print"
+   "class": "print",
+   "childish": true
   },
   {
    "file": "GochiHand-Regular.ttf",
    "url": "https://github.com/google/fonts/raw/main/ofl/gochihand/GochiHand-Regular.ttf",
    "license": "OFL-1.1",
-   "class": "print"
+   "class": "print",
+   "childish": true
   },
   {
    "file": "ShadowsIntoLight.ttf",
    "url": "https://github.com/google/fonts/raw/main/ofl/shadowsintolight/ShadowsIntoLight.ttf",
    "license": "OFL-1.1",
-   "class": "print"
+   "class": "print",
+   "childish": true
   },
   {
    "file": "NothingYouCouldDo.ttf",
@@ -92,7 +96,8 @@
    "file": "CoveredByYourGrace.ttf",
    "url": "https://github.com/google/fonts/raw/main/ofl/coveredbyyourgrace/CoveredByYourGrace.ttf",
    "license": "OFL-1.1",
-   "class": "print"
+   "class": "print",
+   "childish": true
   },
   {
    "file": "LaBelleAurore.ttf",
@@ -134,7 +139,8 @@
    "file": "SueEllenFrancisco-Regular.ttf",
    "url": "https://github.com/google/fonts/raw/main/ofl/sueellenfrancisco/SueEllenFrancisco-Regular.ttf",
    "license": "OFL-1.1",
-   "class": "print"
+   "class": "print",
+   "childish": true
   },
   {
    "file": "Handlee-Regular.ttf",
@@ -170,19 +176,22 @@
    "file": "JustAnotherHand-Regular.ttf",
    "url": "https://github.com/google/fonts/raw/main/apache/justanotherhand/JustAnotherHand-Regular.ttf",
    "license": "Apache-2.0",
-   "class": "print"
+   "class": "print",
+   "childish": true
   },
   {
    "file": "ComingSoon-Regular.ttf",
    "url": "https://github.com/google/fonts/raw/main/apache/comingsoon/ComingSoon-Regular.ttf",
    "license": "Apache-2.0",
-   "class": "print"
+   "class": "print",
+   "childish": true
   },
   {
    "file": "Schoolbell-Regular.ttf",
    "url": "https://github.com/google/fonts/raw/main/apache/schoolbell/Schoolbell-Regular.ttf",
    "license": "Apache-2.0",
-   "class": "print"
+   "class": "print",
+   "childish": true
   },
   {
    "file": "PlaypenSans[wght].ttf",
@@ -293,19 +302,22 @@
    "file": "Mali-Regular.ttf",
    "url": "https://github.com/google/fonts/raw/main/ofl/mali/Mali-Regular.ttf",
    "license": "OFL-1.1",
-   "class": "print"
+   "class": "print",
+   "childish": true
   },
   {
    "file": "Itim-Regular.ttf",
    "url": "https://github.com/google/fonts/raw/main/ofl/itim/Itim-Regular.ttf",
    "license": "OFL-1.1",
-   "class": "print"
+   "class": "print",
+   "childish": true
   },
   {
    "file": "Sriracha-Regular.ttf",
    "url": "https://github.com/google/fonts/raw/main/ofl/sriracha/Sriracha-Regular.ttf",
    "license": "OFL-1.1",
-   "class": "cursive"
+   "class": "cursive",
+   "childish": true
   },
   {
    "file": "Charmonman-Regular.ttf",
@@ -358,7 +370,8 @@
     "Han",
     "Hiragana",
     "Katakana"
-   ]
+   ],
+   "childish": true
   },
   {
    "file": "MaShanZheng-Regular.ttf",
@@ -421,7 +434,8 @@
    "class": "print",
    "own": [
     "Hangul"
-   ]
+   ],
+   "childish": true
   },
   {
    "file": "HiMelody-Regular.ttf",
@@ -430,7 +444,8 @@
    "class": "print",
    "own": [
     "Hangul"
-   ]
+   ],
+   "childish": true
   },
   {
    "file": "Gaegu-Regular.ttf",
@@ -439,7 +454,8 @@
    "class": "print",
    "own": [
     "Hangul"
-   ]
+   ],
+   "childish": true
   },
   {
    "file": "GveretLevin-Regular.ttf",

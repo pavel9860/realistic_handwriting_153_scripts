@@ -62,3 +62,21 @@ def test_hand_movement_speed_attached():
     lay = w.lines("minimum", 80)
     moved = [s for s in lay.strokes if s.v is not None]
     assert moved and all(len(s.v) == len(s.p) for s in moved)
+
+
+@needs_fonts
+def test_scan_keeps_ink_and_range():
+    for seed in range(4):
+        s = H.write("scan test words", H.sample_writer(seed=seed, bank=False), 60, 100, False, scan=True)
+        g = s.image.mean(2)
+        assert s.image.dtype == np.uint8 and np.median(g) - g.min() > 50  # ink still visible after ageing and scanning
+
+
+@needs_fonts
+def test_personal_letters_stable_across_styles():
+    from hwsynth.config import GENE_INDEX
+
+    per, g = H.individual("print_script", 5, bank=False)
+    g = g.copy()
+    g[GENE_INDEX["letters"]] = 1.0
+    assert len({H.styled(per, g, s, 1).identity for s in ("casual", "formal", "hurried", "medical")}) == 1

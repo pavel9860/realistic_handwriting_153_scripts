@@ -143,6 +143,7 @@ def render(strokes, pen, p, dpi, rng, shape=None, origin=None, cfg=RenderCfg()):
         v, pr, ang, arc, L = kinematics(q, k, xh, p, rng, sp)
         wd, d = marks(pen, v, pr, ang, arc, L, p, k * ss, xh, rng)
         d = np.clip(d * flow, 0, 1)
+        wd = wd * s.wscale
         if s.dot:
             wd = wd * 1.15
         r = np.maximum(np.minimum(wd, cap) * k * ss / 2, cfg.min_radius)

@@ -3,7 +3,7 @@
 \usepackage{graphicx,booktabs,amsmath,amssymb,hyperref,xcolor,microtype}
 \usepackage[numbers,sort&compress]{natbib}
 \hypersetup{colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black}
-\title{\textbf{hwsynth: Natural Synthetic Handwriting in 151 Unicode Scripts\\from Writer, Movement and Tool Models}}
+\title{\textbf{hwsynth: Natural Synthetic Handwriting in 153 Unicode Scripts\\from Writer, Movement and Tool Models}}
 \author{pavel9860\\\small\url{https://github.com/pavel9860}}
 \date{October 2026}
 
@@ -14,13 +14,14 @@
 Document understanding systems need handwriting in every script they meet, yet learned handwriting generators exist
 for a handful of scripts and need large per-script training sets, while rendering handwriting fonts looks
 mechanical: every \emph{a} is the same \emph{a}. We present \textsf{hwsynth}, a training-free generator that writes
-any text in 151 of the 175 Unicode scripts. Letters are traced from handwriting fonts (Noto where none exists) into
-pen paths; a writer model with 43 genes rewrites them; a movement model re-synthesises every stroke as overlapping
+any text in 153 of the 175 Unicode scripts. Letters are traced from handwriting fonts (Noto where none exists) into
+pen paths; a writer model with 44 genes rewrites them; a movement model re-synthesises every stroke as overlapping
 lognormal sub-movements and trades shape fidelity against jerk energy by an effort parameter; a tool model with 17
-writing instruments deposits ink by nib shape, ink rheology, speed and pressure. Twenty handwriting types, grounded
+writing instruments deposits ink by nib shape, ink rheology, speed and pressure. Twenty-four handwriting types, grounded
 in the discriminating elements of forensic handwriting examination, can each be written in ten situational styles
-and with either hand. A novelty-weighted evolution, scored against real scanned handwriting with document-disjoint
-fit and test sets, fills a bank of realistic individuals per type while keeping the types apart in two
+and with either hand. A quality-diversity search (MAP-Elites) over measured slant and connectedness, scored against real
+scanned handwriting with document-disjoint fit and test sets and penalised for baseline instability beyond that of
+real handwriting, fills a bank of realistic individuals per type while keeping the types apart in two
 writer-identification spaces. \input{abstract_numbers}
 \end{abstract}
 
@@ -50,13 +51,13 @@ is both realistic and diverse, which no hand-tuning achieves across dozens of in
 \paragraph{Contributions.}
 \begin{itemize}\setlength\itemsep{1pt}
 \item A script-agnostic letter source: centrelines traced from handwriting fonts and Noto fallbacks, drawn per
-grapheme cluster or per shaped word, covering 151 Unicode scripts (\S\ref{sec:letters}).
+grapheme cluster or per shaped word, covering 153 Unicode scripts (\S\ref{sec:letters}).
 \item A writer model separating \emph{identity} (forensic discriminating elements~\cite{huber1999}) from
-\emph{situation}, with 20 handwriting types $\times$ 10 styles $\times$ 2 hands (\S\ref{sec:writer}).
+\emph{situation}, with 24 handwriting types $\times$ 10 styles $\times$ 2 hands (\S\ref{sec:writer}).
 \item A movement model combining lognormal sub-movements~\cite{plamondon1995} with a minimum-jerk~\cite{flash1985}
 trade-off controlled by effort, which orders the styles from medical scrawl to calligraphy (\S\ref{sec:motion}).
 \item A tool and ink model for 17 instruments after the ink-deposition classes of~\cite{franke2004} (\S\ref{sec:tool}).
-\item A leakage-controlled evaluation and a joint evolution that scores realism against real handwriting and
+\item A leakage-controlled evaluation and a quality-diversity search that scores realism against real handwriting and
 separation with image and pen-path writer-identification features~\cite{bulacu2007,lai2019} (\S\ref{sec:evolve}).
 \end{itemize}
 The code is released under CC BY-NC 4.0 (\S\ref{sec:conclusion}).
@@ -99,8 +100,8 @@ renderer, not a physical simulation.
 
 \paragraph{Evaluation and search.}
 We report Fr\'echet distances~\cite{heusel2017} and k-NN precision and recall~\cite{kynkaanniemi2019} on ImageNet
-ResNet18~\cite{he2016} embeddings and on stroke features. The writer bank is evolved with a novelty
-term~\cite{lehman2011}; quality-diversity search~\cite{mouret2015} is a natural extension (\S\ref{sec:discussion}).
+ResNet18~\cite{he2016} embeddings and on stroke features. The writer bank is filled by MAP-Elites~\cite{mouret2015}, a quality-diversity algorithm that keeps the best
+solution in every cell of a behaviour grid, related to novelty search~\cite{lehman2011}.
 
 % ---------------------------------------------------------------------------------------------------------------
 \section{Method}
@@ -130,20 +131,20 @@ script that font covers, otherwise a handwriting font of the script (59 fonts wi
 brush), otherwise a Noto Sans font (158). A glyph is rasterised at 160\,px, skeletonised, and traced into a graph
 whose free spurs are pruned and whose edges continue straight through junctions (smallest turning angle), giving
 ordered pen strokes. Glyph size is normalised per script by a reference letter (e.g.\ Han is written at twice the
-x-height). Of the 175 scripts in Unicode, 151 have at least one font covering 90\,\% of their core letters.
+x-height). Of the 175 scripts in Unicode, 153 have at least one font covering 90\,\% of their core letters.
 
 \subsection{Writers: identity and situation}
 \label{sec:writer}
-A writer is a vector of 43 genes in $[0,1]$. Twenty-two are \emph{identity} genes following the discriminating
+A writer is a vector of 44 genes in $[0,1]$. Twenty-three are \emph{identity} genes following the discriminating
 elements of~\cite{huber1999}: size, lateral expansion, ascender and descender length, capital size, slant, letter
 and word spacing, line pitch, roundness and angularity (garland, arcade, angular and thread movement), joining,
 entry hooks and exit flicks, dot placement and form, pressure, the allograph set (font), the share of letters
-written in a second allograph, handedness, all-capital writing and zone flattening. The others are
+written in a second allograph, handedness, all-capital writing, zone flattening and circle-shaped dots. The others are
 \emph{situational}: jitter of size, slant, rotation, baseline and spacing (correlated between neighbouring letters,
 AR(1) with $\rho=0.6$), speed, effort, decay towards word ends, slant drift, baseline wander, tremor, cross-outs,
 retracing and mixed capitals.
 
-A \emph{type} fixes a centre for every identity gene (twenty types, Table~\ref{tab:types} in the appendix); an
+A \emph{type} fixes a centre for every identity gene (twenty-four types, Table~\ref{tab:types} in the appendix); an
 individual draws each centred gene within $\pm12\,\%$ of its range. A \emph{style} remaps situational genes into
 style ranges, keeping each writer's relative position, and shifts a few identity genes (e.g.\ hurried writers join
 more and slant further). Left-handed writers (hand gene $>0.9$, about 10\,\%) pull horizontal strokes from right to
@@ -170,6 +171,16 @@ Effort is a situational gene whose style ranges increase from medical (0--0.12) 
 casual, educated and formal to accurate and calligraphic (0.9--1). The speed of the synthesised movement drives the
 tool. Lines follow wrist-pivot arcs that reset at hand shifts every 25--60\,mm, plus slow random baseline wander.
 
+\subsection{Mathematics, chemistry and figures}
+\label{sec:math}
+Inline \verb|$...$| segments use a small TeX-like syntax: scripts, fractions, roots, Greek letters and symbols, drawn
+arrows, \verb|\ce{...}| chemical equations (counts become subscripts, charges superscripts, reaction and equilibrium
+arrows) and \verb|\benzene|. They are laid out as boxes of pen strokes: glyph runs come from the writer, rules,
+radicals, arrows and rings are drawn as strokes, and the writer's hand then moves over the whole expression like a
+word. Figures (circles, ellipses, triangles, rectangles, arrows, stars, ticks, crosses, axes with a curve, underlines)
+are planned as freehand paths that do not quite close, overshoot at corners and bow slightly, and are then moved and
+inked by the same models.
+
 \subsection{Tools and ink}
 \label{sec:tool}
 Seventeen tools combine a nib shape (round; broad edge with thick--thin contrast $w+e\lvert\sin(\phi+\alpha)\rvert$
@@ -180,51 +191,80 @@ fineliner, fountain, markers: near-constant density, pooling at slow points, ble
 Pressure combines the writer's push, its variation, extra force on downstrokes, and lift-off ramps. Strokes are drawn
 as dense anti-aliased discs at $3\times$ supersampling and combined with tool-specific overlap.
 
-\subsection{Writer bank: evolution with realism and separation}
+\subsection{Writer bank: quality-diversity search}
 \label{sec:evolve}
 \paragraph{Real references.} Text lines are cut from 980 scanned handwritten documents, cleaned (no rulings,
 staves or bars; contrast; ink share) and kept when most of their five nearest labelled lines are handwriting. The
-documents are split into a \emph{fit} set (2\,876 lines) used by the evolution and a \emph{test} set (1\,181 lines)
+documents are split into a \emph{fit} set (2\,876 lines) used by the search and a \emph{test} set (1\,181 lines)
 used only for metrics; documents whose lines were used to label the handwriting filter are never test documents.
 
-\paragraph{Fitness.} An individual is rendered on four fitness texts, half in the casual style and half in a random
-other style, with two seeds. \emph{Realism} is the mean of two z-scores: the mean cosine similarity of its line
-embeddings to their five nearest fit lines, and minus the mean distance of its stroke features to their five
-nearest fit lines, each standardised by the same statistic of fit lines against lines of other documents.
-\emph{Separation} is the distance to the nearest other type's centroid minus the distance to the own centroid, in
-contour-direction/hinge space~\cite{bulacu2007} ($\chi^2$, three fragment lengths) and in pen-path signature
-space~\cite{lai2019} (depth-3 signatures of fragments, z-scored), each normalised by its median own distance.
-\emph{Novelty} is the mean embedding distance to the ten nearest individuals of the same type. All twenty types
-evolve jointly (fitness $=$ realism $+0.5$ separation $+0.5$ novelty). An individual enters its type's bank only if a
-re-evaluation with fresh seeds also reaches the realism threshold, it is nearer its own type than any other, and
-it differs from every banked individual.
+\paragraph{Priors.} Genes a type leaves free are not drawn uniformly: noise genes are drawn as $u^k$
+($k=2$--$4$), concentrated near zero, and signed drifts near their centre. Uniform priors gave the median writer
+half of the maximum jitter on every noise channel at once, which looks unstable and childish; most adults vary
+narrowly to moderately. Fonts with a childish design are reserved for the child type and the uneducated style.
+
+\paragraph{Stability from real handwriting.} Baseline instability is the standard deviation of word ink centres
+around their fitted line, in x-heights (estimated from the dense core band of the row profile). On 1\,013 lines
+from fit documents it runs from about 0.13 for steady to 0.35 for wavy clean lines; higher values belong to
+extraction errors (tables, staves, two lines). Generated and real lines are measured with the same function.
+
+\paragraph{Search.} Each type has a MAP-Elites archive~\cite{mouret2015} over two measured behaviour descriptors:
+the slant of near-vertical pen-path segments (7 bins) and pen lifts per letter (5 bins). An individual is rendered on
+four search texts, in the casual style and in a random other style. Its quality is
+\begin{equation}
+  Q=\textit{realism}-4\max(0,\;\textit{instability}-0.15)-[\textit{separation}\le 0],
+\end{equation}
+where \emph{realism} is the mean of two z-scores (cosine similarity of its line embeddings to their five nearest
+fit lines; minus the distance of its stroke features to their five nearest fit lines; both standardised by the same
+statistic of fit lines against lines of other documents) and \emph{separation} is the distance to the nearest other
+type's centroid minus the distance to its own, in contour-direction/hinge space~\cite{bulacu2007} ($\chi^2$) and in
+path-signature space~\cite{lai2019}, each relative to the own distance. New individuals are iso-line variations of
+two elites of the same type, kept within the type's range. Finally every elite is re-evaluated with two fresh
+seeds and banked when its realism is at least $-0.3$, it is nearer its own type than any other, and its
+instability stays below 0.35.
 
 % ---------------------------------------------------------------------------------------------------------------
 \section{Experiments}
 \label{sec:experiments}
 
-\paragraph{Setup.} Metrics use texts disjoint from the fitness texts and the held-out test documents. We compare:
+\paragraph{Setup.} Metrics use texts disjoint from the search texts and the held-out test documents. We compare:
 plain rendering of a handwriting font (\emph{font}); writers with uniform random genes (\emph{random}); type priors
-without evolution (\emph{prior}); the evolved bank (\emph{bank}); and the bank without the pen model, without shape
+without search (\emph{prior}); the searched bank (\emph{bank}); and the bank without the pen model, without shape
 variation, and without letter joins. Embeddings are ResNet18 (ImageNet)~\cite{he2016}; legibility is the character
 error rate of Tesseract~\cite{smith2007} on English lines.
 
 \input{results}
 
+\begin{figure*}[t]\centering
+\includegraphics[width=0.62\textwidth]{figs/progression.png}\hfill
+\includegraphics[width=0.36\textwidth]{figs/progression_samples.jpg}
+\caption{From font rendering to natural handwriting. Left: realism on held-out real lines as each model is added
+(mean $\pm$ s.e., 16 writers $\times$ 2 texts per point). The measure saturates once the output looks like
+handwriting, so later stages change it little. Pen and ink lowers the calligraphic style, whose broad-nib contrast
+is rare in the mostly ballpoint references. The scan look lowers it slightly too. Right: one writer at each stage.}
+\label{fig:progression}
+\end{figure*}
+
+\begin{figure*}[t]\centering
+\includegraphics[width=0.95\textwidth]{figs/search.png}
+\caption{Quality-diversity search over all 24 types: median elite quality rises from $-0.05$ to $0.26$, median
+baseline instability falls inside the range of clean real lines, and the archive fills 154 cells.}
+\label{fig:search}
+\end{figure*}
+
 \paragraph{Analysis.}
-All model-based systems close about half of the gap between font rendering and real handwriting (embedding FD
-0.245--0.259 against 0.453 for fonts and 0.065 for real handwriting of other documents), and they triple the
-precision. The remaining gap is large, and recall stays low (1--6\,\%). The real scans span archives, coloured
-paper, faded ink and scanner artefacts that clean synthetic lines on near-white paper do not cover, so recall
-measures the page model as much as the handwriting. Evolution adds less realism than the models do (0.383 against
-0.331 for the type priors), but it makes the types much more distinguishable: type identification rises from
-37\,\% to 49\,\% with contour-hinge features and from 38\,\% to 52\,\% with path signatures, against 5\,\% chance,
-while individuals stay identifiable (31--49\,\% against 1.25\,\%). Removing the pen model, the shape variation or the
-letter joins each lowers realism and precision. Movement energy rises strictly with the effort of the styles, from
-medical ($1.3\times10^{-7}$) to calligraphic ($3.1\times10^{-5}$), and the turning entropy rises with it. Accurate
-writing is the most legible of the styles for Tesseract (CER 0.21) and medical writing the least (0.69). Messy
-styles score higher realism than formal ones because the references are dominated by everyday handwriting.
-Generation takes about 150\,ms per line on one CPU core.
+The searched bank closes three quarters of the gap between font rendering and real handwriting in embedding FD
+(0.158 against 0.433 for fonts and 0.065 between real documents), with precision 0.69 against 0.34 for fonts. The
+scan model is the largest single contributor: without it FD rises to 0.249 and recall falls from 6.4\,\% to
+1.6\,\%, although the realism z-score, which saturates and treats scanner noise as atypical, moves the other way
+(0.48 against 0.40; Figure~\ref{fig:progression}). Recall remains low: real scans span archives, coloured paper and
+damage that the model only partly covers. The search adds realism (0.40 against 0.28 for the type priors) and
+precision (0.69 against 0.59) while keeping instability inside the real range (Figure~\ref{fig:search}). Removing
+shape variation or letter joins lowers realism and precision; removing the pen model lowers precision and raises FD.
+Movement energy rises strictly with the effort of the styles, from medical ($1.7\times10^{-7}$) through hurried,
+professional, casual, educated and formal to calligraphic ($3.9\times10^{-5}$), and turning entropy rises with it.
+Accurate writing is the most legible style for Tesseract (CER 0.17) and medical writing the least (0.66).
+Generation with the scan model takes about 0.3\,s per line on one CPU core.
 
 % ---------------------------------------------------------------------------------------------------------------
 \section{Discussion and Limitations}
@@ -233,14 +273,12 @@ The realism measure is a proxy: ImageNet embeddings and 22 stroke statistics see
 correctness of letterforms in a particular script, and the reference lines are mostly Latin. No trained writer
 identification network was available, so separation uses classical features; the deep writer embeddings of recent
 work would be a stronger test. Scripts without a handwriting font inherit Noto's letterforms, which our writer and
-movement models make handwritten in execution but not in allograph design. The evolution maximises per-individual
-fitness; quality-diversity search~\cite{mouret2015} over trait descriptors and fitting individuals to real
-documents by analysis-by-synthesis would cover the space of real writers more evenly.
+movement models make handwritten in execution but not in allograph design. Fitting individuals to real documents by analysis-by-synthesis would ground the bank in real writers.
 
 \section{Conclusion}
 \label{sec:conclusion}
-Explicit models of the writer, the hand and the tool, set by a leakage-controlled evolution, produce natural,
-diverse handwriting in 151 scripts without any trained generator. Every layer is inspectable: one can ask for a
+Explicit models of the writer, the hand and the tool, set by a leakage-controlled quality-diversity search, produce natural,
+diverse handwriting in 153 scripts without any trained generator. Every layer is inspectable: one can ask for a
 left-handed elderly writer, in a hurry, with a pencil. Natural extensions are handwriting fonts for the remaining
 scripts, page-level phenomena (margins, insertions, marginalia), learned discriminators as realism judges, and
 fitting the bank to real writers. Code, examples and this paper: \url{https://github.com/pavel9860}.

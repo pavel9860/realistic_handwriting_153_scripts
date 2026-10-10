@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 import cv2
 import numpy as np
+import regex
 
 from . import scripts as S
 from .config import GENE_INDEX, GENES, LEFT_HANDED, GlyphCfg, MotionCfg
@@ -13,6 +14,10 @@ from .pen import Pen
 from .motion import effort_lambda, min_jerk, pivot, synthesise
 from .skeleton import glyph, resample, smooth
 
+MATH = regex.compile(r"\$([^$]*)\$")  # inline math segments
+MATH_TAG = "\x00math:"
+STABLE = ("font", "allo", "hand", "ring", "asc", "desc", "cap", "xs", "angular", "hook", "letters")
+COMPLEX = 6.0  # glyphs with more stroke length per em of advance than this get a proportionally thinner pen
 AR = 0.6  # correlation of size, slant and baseline jitter between neighbouring letters
 
 
@@ -37,6 +42,7 @@ class Stroke:
     word: int = -1
     v: np.ndarray = None  # normalised pen speed along p (hand movement model), None: estimated by the pen
     script: str = "Latin"
+    wscale: float = 1.0  # pen width factor (thinner in intricate glyphs)
     plan: np.ndarray = None  # planned movement (after hand movement, before tremor and page warp), mm
 
 
@@ -59,6 +65,15 @@ class Layout:
     meta: dict = field(default_factory=dict)
 
 
+def _apart(s, strokes, gap):
+    """A small stroke is a dot (or diacritic) only when it stands apart from every other stroke of the glyph."""
+    others = [o for o in strokes if o is not s]
+    if not others:
+        return False
+    d = np.sqrt(((s[:, None] - np.vstack(others)[None]) ** 2).sum(-1)).min()
+    return d > gap
+
+
 def _sharpen(s, tol):
     """Polyline simplified to straight runs (Douglas-Peucker, tolerance in em) and resampled: angular corners."""
     if tol <= 0 or len(s) < 5:
@@ -79,7 +94,8 @@ class Writer:
         self.pen = Pen.sample(self.rng, pens)
         self.name = name
         self.paper = paper
-        self.identity = int(np.round(self.genes * 50).astype(int) @ (31 ** np.arange(len(self.genes)) % 1000003))
+        keep = [GENE_INDEX[n] for n in STABLE]  # genes no style changes: the same person in every style
+        self.identity = int(np.round(self.genes[keep] * 50).astype(int) @ (31 ** np.arange(len(keep)) % 1000003))
         self.slant_drift = 0.0
         self.mcfg = MotionCfg()
         self.pivot_r = self.rng.uniform(*self.mcfg.pivot_radius)
@@ -132,13 +148,16 @@ class Writer:
             A = np.array([[c, -s_], [s_, c]]) @ np.array([[1, -np.tan(sl)], [0, 1]]) @ np.diag([sx * em, sy * em])
             zone = 1 / em_per_xh(f, scr if scr != "Common" else "Latin", GlyphCfg().px)
             gs = []
+            ink = sum(np.hypot(*np.diff(st, axis=0).T).sum() for st in strokes)
+            wscale = min(1.0, COMPLEX / max(ink / max(adv, 0.3), 1e-6))  # stroke length per em of advance
             for st in strokes:
                 ext = np.ptp(st, axis=0)
-                dot = len(strokes) > 1 and np.hypot(*ext) < 0.1
+                dot = len(strokes) > 1 and np.hypot(*ext) < 0.1 and _apart(st, strokes, 0.06)
+                st = self._personal(st, u, f) if not dot else st
                 q = self._shape(self._ends(self._hand(self._zones(st, zone)), dot), dot) @ A.T + (x, dy)
                 if dot and scr in S.JOINABLE:
                     q = self._dot(q, size, sl)
-                gs.append(Stroke(q, dot, script=scr))
+                gs.append(Stroke(q, dot, script=scr, wscale=wscale))
             if (
                 prev is not None
                 and scr in S.JOINABLE
@@ -162,6 +181,20 @@ class Writer:
         if (not closed and abs(d[0]) > 2 * abs(d[1]) and d[0] > 0) or (closed and self.rng.random() < 0.5):
             return s[::-1]
         return s
+
+    def _personal(self, s, unit, font):
+        """The writer's own version of a letter: a smooth deformation and a width, height and slant tweak that are
+        drawn once per writer and letter (seeded by identity), so every instance of the letter shares them."""
+        amp = self.p["letters"]
+        if amp <= 0:
+            return s
+        import zlib
+
+        r = np.random.default_rng(zlib.crc32(f"{self.identity}/{font}/{unit}".encode()))
+        f = Field(r, amp * 0.03, r.uniform(0.35, 0.7))
+        sx, sy, sh = 1 + r.normal(0, 0.05 * amp), 1 + r.normal(0, 0.04 * amp), r.normal(0, 0.04 * amp)
+        c = s.mean(0)
+        return f(c + ((s - c) * (sx, sy)) + np.c_[-(s[:, 1] - c[1]) * sh, np.zeros(len(s))]) if len(s) else s
 
     def _ends(self, s, dot):
         """Stroke ends overshoot or stop short of where they meet (em): no two strokes join exactly."""
@@ -227,6 +260,9 @@ class Writer:
         p, rng = self.p, self.rng
         c = q.mean(0) + (p["dot_dx"] * size * rng.uniform(0.3, 1.5), rng.normal(0, 0.08) * size)
         ln = size * p["dot_len"] * rng.uniform(0, 0.35)
+        if rng.random() < p["ring"] - 0.5:  # dot drawn as a small open circle
+            t = np.linspace(0, 2 * np.pi * rng.uniform(0.85, 1.05), 14) + rng.uniform(0, 2 * np.pi)
+            return c + np.c_[np.cos(t), np.sin(t)] * size * rng.uniform(0.07, 0.11)
         a = np.radians(rng.uniform(-60, 20)) - sl * 0.5
         d = np.array([np.cos(a), np.sin(a)]) * ln / 2
         return np.vstack([c - d, c + d]) if ln > 0.02 else np.vstack([c, c + (0.01, 0.01)])
@@ -288,8 +324,18 @@ class Writer:
 
     # text -------------------------------------------------------------------------------------------------------
     def tokens(self, text):
-        """(text, script, space after) tokens: words; scripts without spaces split into short chunks (single
-        characters for Han and kana) with closing punctuation kept on the chunk before it."""
+        """(text, script, space after) tokens: words; $...$ math segments as one token each; scripts without spaces
+        split into short chunks (single characters for Han and kana) with closing punctuation kept on the chunk
+        before it."""
+        out = []
+        for k, part in enumerate(MATH.split(text)):
+            if k % 2:
+                out.append((MATH_TAG + part, "Math", True))
+                continue
+            out += self._word_tokens(part)
+        return out
+
+    def _word_tokens(self, text):
         out = []
         for w in text.split():
             scr = S.text_script(w)
@@ -320,10 +366,18 @@ class Writer:
         placed, words = [], []
         line, x = 0, rng.normal(0, p["margin_sd"] * xh * 0.3)
         for i, (w, scr, space) in enumerate(toks):
-            todo = [(self._typo(w), True)] if rng.random() < p["cross"] and len(w) > 2 and w.isalpha() else []
+            is_math = w.startswith(MATH_TAG)
+            todo = []
+            if not is_math and rng.random() < p["cross"] and len(w) > 2 and w.isalpha():
+                todo = [(self._typo(w), True)]
             self.slant_drift = 0.9 * self.slant_drift + rng.normal(0, 0.6 * p["slant_sd"] + 0.3)
             for ww, struck in todo + [(w, False)]:
-                strokes, adv = self.word(ww, xh, i / max(len(toks) - 1, 1))
+                if is_math:
+                    from .math import layout
+
+                    strokes, adv = layout(self, ww[len(MATH_TAG) :], xh)
+                else:
+                    strokes, adv = self.word(ww, xh, i / max(len(toks) - 1, 1))
                 if rng.random() < p["retrace"] and len(strokes) > 1:
                     s = strokes[int(rng.integers(len(strokes)))]
                     strokes.append(Stroke(s.p + rng.normal(0, 0.06, 2) * xh))
@@ -334,7 +388,7 @@ class Writer:
                     strokes += [Stroke(q) for q in self._scribble(-0.05 * xh, adv + 0.05 * xh, xh)]
                 for s in strokes:
                     s.word = len(words)
-                words.append(Word(ww, line, struck))
+                words.append(Word(ww.removeprefix(MATH_TAG), line, struck))
                 placed.append((line, x, strokes, adv))
                 gap = p["ws"] * xh * (1 + rng.normal(0, 0.25)) if space else rng.normal(0.05, 0.05) * xh
                 x += adv + (max(gap, 0.3 * xh) if space else gap)
@@ -352,12 +406,7 @@ class Writer:
                 q[:, 1] += slope * q[:, 0] + bends[ln](q[:, 0])
                 s.p = q
                 strokes.append(s)
-        self._move(strokes, xh)
-        for s in strokes:
-            s.p = warp(s.p)
-            if len(s.p) > 3 and p["tremor"] > 0.05:
-                n = len(s.p)
-                s.p = s.p + np.c_[noise1d(rng, n, 1.2, 1), noise1d(rng, n, 1.2, 1)] * p["tremor"] * xh * 0.012
+        self.finish(strokes, xh, warp)
         for i, w in enumerate(words):
             pts = [s.p for s in strokes if s.word == i]
             if pts:
@@ -374,6 +423,17 @@ class Writer:
                 writer=self.name, pen=self.pen.tool, ink=self.pen.ink_name, xh=xh, hand="left" if self.left else "right"
             ),
         )
+
+    def finish(self, strokes, xh, warp=None):
+        """Hand movement, page warp and tremor applied to placed strokes (mm)."""
+        p, rng = self.p, self.rng
+        warp = warp or Field(rng, p["elastic"] * xh * 0.04, xh * 6)
+        self._move(strokes, xh)
+        for s in strokes:
+            s.p = warp(s.p)
+            if len(s.p) > 3 and p["tremor"] > 0.05:
+                n = len(s.p)
+                s.p = s.p + np.c_[noise1d(rng, n, 1.2, 1), noise1d(rng, n, 1.2, 1)] * p["tremor"] * xh * 0.012
 
     def motion(self, scr):
         """(overlap, mu, sigma) of the writer's sub-movements in a script: speed sets fluency and tempo, tremor and

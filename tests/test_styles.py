@@ -14,8 +14,8 @@ def test_person_within_spread():
                 assert abs(g[GENE_INDEX[n]] - encode({n: v})[GENE_INDEX[n]]) <= PERSON_SPREAD + 1e-9
 
 
-def test_twenty_persons_ten_styles():
-    assert len(PERSONS) == 20 and len(STYLES) == 10
+def test_twenty_four_persons_ten_styles():
+    assert len(PERSONS) == 24 and len(STYLES) == 10
 
 
 def test_style_keeps_identity_and_bounds():

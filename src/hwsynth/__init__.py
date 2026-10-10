@@ -1,11 +1,14 @@
 """hwsynth: natural synthetic handwriting in any Unicode script."""
 
 from .config import GENES, PERSONS, STYLES
+from .figures import FIGURES, figure
 from .page import Sample, line_crop, write
 from .styles import apply_style, individual, person_genes, sample_writer, styled
 from .writer import Layout, Writer, decode, encode
 
 __all__ = [
+    "FIGURES",
+    "figure",
     "GENES",
     "PERSONS",
     "STYLES",

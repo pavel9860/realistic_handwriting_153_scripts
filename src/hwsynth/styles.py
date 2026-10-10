@@ -4,10 +4,12 @@ import json
 
 import numpy as np
 
-from .config import GENE_INDEX, GENES, IDENTITY, PERSON_SPREAD, PERSONS, STYLES, EvolveCfg, Paths
+from .config import CENTRED, GENE_INDEX, GENES, IDENTITY, NOISE_SKEW, PERSON_SPREAD, PERSONS, STYLES, QDCfg, Paths
 from .writer import Writer, encode
 
-RARE = ("cross", "retrace", "caps")  # rare events: drawn skewed towards zero
+
+CHILDISH_TYPES = ("child",)  # only these may use fonts marked childish in the manifest
+CHILDISH_STYLES = ("uneducated",)
 
 
 def type_centre(person):
@@ -25,8 +27,10 @@ def person_genes(person, rng):
     """Genes of a new individual of a handwriting type: type centres +- PERSON_SPREAD, other genes uniform (rare
     events skewed towards zero, capitals-only writing only where the type sets it)."""
     g = rng.random(len(GENES))
-    for n in RARE:
-        g[GENE_INDEX[n]] **= 3
+    for n, k in NOISE_SKEW.items():
+        g[GENE_INDEX[n]] **= k
+    for n in CENTRED:
+        g[GENE_INDEX[n]] = 0.5 + 4 * (g[GENE_INDEX[n]] - 0.5) ** 3
     g[GENE_INDEX["upper"]] *= 0.4
     g[GENE_INDEX["caps"]] *= 0.15
     if person is None:
@@ -53,19 +57,21 @@ def apply_style(genes, style):
 
 
 def font_class(person, style):
-    return STYLES[style].fonts or (PERSONS[person].fonts if person else "any")
+    cls = STYLES[style].fonts or (PERSONS[person].fonts if person else "any")
+    return cls + ("+childish" if person in CHILDISH_TYPES or style in CHILDISH_STYLES else "")
 
 
 def load_bank(person, paths=Paths()):
     """Writer bank of a type: the local one (hwsynth evolve) if present, else the bank shipped with the package."""
     from pathlib import Path
+
     for f in (paths.bank(person or "any"), Path(__file__).parent / "data" / "banks" / f"writers_{person}.json"):
         if f.exists():
-            return json.loads(f.read_text())
+            return [e for e in json.loads(f.read_text()) if len(e["genes"]) == len(GENES)]  # banks of this gene set
     return []
 
 
-def individual(person=None, seed=0, bank=True, paths=Paths(), cfg=EvolveCfg()):
+def individual(person=None, seed=0, bank=True, paths=Paths(), cfg=QDCfg()):
     """(person, genes) of one individual: from the evolved bank of the type when there is one (with small gene
     noise), else freshly drawn. person None: a random type."""
     rng = np.random.default_rng(seed)
@@ -86,7 +92,7 @@ def styled(person, genes, style="casual", seed=0):
     )
 
 
-def sample_writer(person=None, style="casual", seed=0, bank=True, paths=Paths(), cfg=EvolveCfg()):
+def sample_writer(person=None, style="casual", seed=0, bank=True, paths=Paths(), cfg=QDCfg()):
     """A new writer: a new individual of the type, written in the style."""
     person, g = individual(person, seed, bank, paths, cfg)
     return styled(person, g, style, seed + 1)

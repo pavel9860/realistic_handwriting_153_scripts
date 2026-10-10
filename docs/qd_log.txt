@@ -1,0 +1,29 @@
+Running as unit: hwsynth-qd-1791660484.scope; invocation ID: defafb409017469289002a35a9b1c603
+  576 renders and scores in 438 s
+  384 renders and scores in 272 s
+iter 0: added 71, cells 128, quality median -0.047, instability median 0.136
+  384 renders and scores in 282 s
+iter 1: added 41, cells 133, quality median 0.002, instability median 0.133
+  384 renders and scores in 204 s
+iter 2: added 51, cells 139, quality median 0.048, instability median 0.131
+  384 renders and scores in 212 s
+iter 3: added 36, cells 144, quality median 0.076, instability median 0.131
+  384 renders and scores in 282 s
+iter 4: added 36, cells 146, quality median 0.127, instability median 0.131
+  384 renders and scores in 250 s
+iter 5: added 34, cells 148, quality median 0.201, instability median 0.128
+  384 renders and scores in 267 s
+iter 6: added 22, cells 149, quality median 0.212, instability median 0.127
+  384 renders and scores in 237 s
+iter 7: added 23, cells 150, quality median 0.232, instability median 0.126
+  384 renders and scores in 219 s
+iter 8: added 19, cells 152, quality median 0.238, instability median 0.126
+  384 renders and scores in 218 s
+iter 9: added 17, cells 153, quality median 0.238, instability median 0.125
+  384 renders and scores in 261 s
+iter 10: added 22, cells 154, quality median 0.255, instability median 0.123
+  384 renders and scores in 226 s
+iter 11: added 11, cells 154, quality median 0.255, instability median 0.123
+re-evaluating elites with fresh seeds
+  308 renders and scores in 162 s
+bank sizes: school_cursive 6, round_print 5, compact_print 0, block_capitals 4, backhand 3, angular_cursive 6, thready 2, wide_garland 4, narrow_tall 6, micro 7, expansive 8, arcade 5, print_script 5, elderly 6, child 3, left_hooked 6, copperplate 6, sloppy_fast 3, ruled_neat 3, rounded_neat 5, bubbly_print 4, looped_cursive 3, soft_upright 5, artistic 4

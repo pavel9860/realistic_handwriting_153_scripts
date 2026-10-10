@@ -62,8 +62,9 @@ def compose(ink, rgb, bg):
     return bg * (1 - ink[..., None] * (1 - np.asarray(rgb)[None, None]))
 
 
-def write(text, writer, width_mm=150.0, dpi=150, ruled=None, margin=6.0):
-    """Sample of text written by writer on paper; ruled: True, False or None (by chance, 40 %)."""
+def write(text, writer, width_mm=150.0, dpi=150, ruled=None, margin=6.0, scan=False):
+    """Sample of text written by writer on paper; ruled: True, False or None (by chance, 40 %); scan: scanned-document
+    look (scan.py): True, False or None (by chance, ScanCfg.p)."""
     rng = writer.rng
     if ruled is None:
         ruled = {"blank": False, "ruled": True}.get(writer.paper, rng.random() < 0.4)
@@ -77,7 +78,7 @@ def write(text, writer, width_mm=150.0, dpi=150, ruled=None, margin=6.0):
     ink, _ = render(lay.strokes, writer.pen, writer.p, dpi, rng, shape, origin)
     if writer.left:
         ink = smudge(ink, writer.pen, dpi, rng)
-    img = compose(ink, writer.pen.ink, paper(shape, rng, rules, dpi, first))
+    img = scanned(ink, writer.pen.ink, paper(shape, rng, rules, dpi, first), rng, dpi, scan)
     words = [
         (w.text, tuple(int(round(v)) for v in ((np.array(w.box) - np.r_[origin, origin]) * k)), w.struck)
         for w in lay.words
@@ -86,12 +87,26 @@ def write(text, writer, width_mm=150.0, dpi=150, ruled=None, margin=6.0):
     return Sample((np.clip(img, 0, 1) * 255).astype(np.uint8), ink, words, dict(lay.meta, ruled=bool(ruled), dpi=dpi))
 
 
-def line_crop(writer, text, dpi=120, layout=False):
+def scanned(ink, rgb, bg, rng, dpi, scan):
+    """Ink composed on the background, then (scan: True, None by chance) aged, faded and scanned."""
+    from .config import ScanCfg
+    from .scan import age, degrade, fade
+
+    if scan is None:
+        scan = rng.random() < ScanCfg().p
+    if not scan:
+        return compose(ink, rgb, bg)
+    a = age(rng)
+    return degrade(compose(fade(ink, rng, a), rgb, bg), ink, rng, dpi, a)
+
+
+def line_crop(writer, text, dpi=120, layout=False, scan=False):
     """Grayscale crop of one line of text on light paper, padded like a text-line detector box (None if empty);
-    with layout=True also the layout (pen paths)."""
+    with layout=True also the layout (pen paths); scan as in write."""
     lay = writer.lines(text, 400)
     ink, _ = render(lay.strokes, writer.pen, writer.p, dpi, writer.rng)
-    g = (compose(ink, writer.pen.ink, np.full(ink.shape + (3,), 0.96)).mean(2) * 255).astype(np.uint8)
+    g = scanned(ink, writer.pen.ink, np.full(ink.shape + (3,), 0.96), writer.rng, dpi, scan).mean(2) * 255
+    g = g.astype(np.uint8)
     ys, xs = np.nonzero(ink > 0.2)
     if not len(ys):
         return (None, lay) if layout else None

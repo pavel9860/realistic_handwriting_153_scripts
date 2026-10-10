@@ -4,7 +4,7 @@ hwsynth write "text" -o out.png [--person P --style S --seed N --width 150 --dpi
 hwsynth examples -o examples/                 persons, styles and scripts sheets
 hwsynth coverage                              scripts that can be written (font coverage of Scripts.txt)
 hwsynth refs PDF_DIR LABELS.pkl               real line references (fit / test split)
-hwsynth evolve [--person P] [--gens N]        evolves the writer banks
+hwsynth search [--person P] [--iters N]       quality-diversity search of the writer banks
 hwsynth metrics -o metrics.json               metrics of all systems and styles
 """
 
@@ -19,7 +19,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from .config import PERSONS, STYLES, EvolveCfg, Paths
+from .config import PERSONS, STYLES, QDCfg, Paths
 
 SAMPLES = {
     "Latin (en)": "The quick brown fox jumps over the lazy dog.",
@@ -135,6 +135,56 @@ def cmd_examples(a):
             )
         )
     cv2.imwrite(str(out / "hands.jpg"), _stack(rows))
+    _math_figures(out, a.dpi, a.prior)
+
+
+MATH_SAMPLES = (
+    r"Solve $x^{2}-5x+6=0$: $x=\frac{5\pm 1}{2}$, so $x_1=3$, $x_2=2$.",
+    r"Area $A=\pi r^{2}$, diagonal $d=\sqrt{a^{2}+b^{2}}$, and $\int_{0}^{1} x^{2} dx=\frac{1}{3}$",
+    r"Combustion: $\ce{CH4 + 2O2 -> CO2 + 2H2O}$",
+    r"Neutralisation: $\ce{H2SO4 + 2NaOH -> Na2SO4 + 2H2O}$, ions $\ce{SO4^{2-}}$ and $\ce{Na+}$",
+    r"Equilibrium $\ce{N2 + 3H2 <=> 2NH3}$ and benzene $\benzene$ $\ce{C6H6}$",
+)
+
+
+def _math_figures(out, dpi, prior):
+    from .figures import FIGURES, figure
+    from .page import write
+    from .styles import individual, styled
+
+    rows = []
+    for j, (t, p) in enumerate(
+        zip(
+            MATH_SAMPLES * 2,
+            (
+                "school_cursive",
+                "rounded_neat",
+                "compact_print",
+                "elderly",
+                "looped_cursive",
+                "print_script",
+                "bubbly_print",
+                "ruled_neat",
+                "sloppy_fast",
+                "soft_upright",
+            ),
+        )
+    ):
+        per, g = individual(p, 300 + j, bank=not prior)
+        rows.append(
+            _label(write(t, styled(per, g, ("casual", "formal", "accurate")[j % 3], 310 + j), 150, dpi, False).image, p)
+        )
+    cv2.imwrite(str(out / "math_chemistry.jpg"), _stack(rows))
+    rows = []
+    for j, p in enumerate(("rounded_neat", "school_cursive", "child", "elderly")):
+        per, g = individual(p, 400 + j, bank=not prior)
+        cells = [
+            figure(k, styled(per, g, "casual", 410 + 20 * j + i), size=45 if k == "axes" else 20, dpi=dpi).image
+            for i, k in enumerate(FIGURES)
+        ]
+        cells = [cv2.resize(c, (int(c.shape[1] * 110 / c.shape[0]), 110)) for c in cells]
+        rows.append(_label(np.hstack([np.pad(c, ((0, 0), (0, 6), (0, 0)), constant_values=255) for c in cells]), p))
+    cv2.imwrite(str(out / "figures.jpg"), _stack(rows))
 
 
 def _pad_same(rows):
@@ -176,18 +226,16 @@ def cmd_refs(a):
     build_refs(a.pdf_dir, a.labels, pages=a.pages)
 
 
-def cmd_evolve(a):
-    from .evolve import evolve_all
+def cmd_search(a):
+    from .qd import search
     from .realism import Realism
 
-    log = lambda m: print(m, flush=True)
-    evolve_all(
+    search(
         Realism("fit"),
         [a.person] if a.person else None,
-        EvolveCfg(gens=a.gens, pop=a.pop),
+        QDCfg(iters=a.iters),
         workers=a.workers,
-        cap=a.cap,
-        log=log,
+        log=lambda m: print(m, flush=True),
     )
 
 
@@ -196,19 +244,21 @@ def cmd_metrics(a):
     from .realism import Realism
 
     r = Realism("test")
-    rows = [real_baseline(r)]
-    print(rows[-1], flush=True)
+    rows = []
+
+    def add(row):  # saved after every row: a crash never loses finished work
+        rows.append(row)
+        print(row, flush=True)
+        Path(a.out).write_text(json.dumps(rows, indent=1, ensure_ascii=False))
+
+    add(real_baseline(r))
     for s in SYSTEMS:
-        rows.append(evaluate(s, r, r, a.writers))
-        print(rows[-1], flush=True)
+        add(evaluate(s, r, r, a.writers))
     for st in STYLES:
         if st != "casual":
-            rows.append(evaluate("bank", r, r, a.writers // 2, st))
-            print(rows[-1], flush=True)
+            add(evaluate("bank", r, r, a.writers // 2, st))
     for bank in (False, True):
-        rows.append(dict(system="distinguishability", bank=bank, **distinguishability(bank=bank)))
-        print(rows[-1], flush=True)
-    Path(a.out).write_text(json.dumps(rows, indent=1, ensure_ascii=False))
+        add(dict(system="distinguishability", bank=bank, **distinguishability(bank=bank)))
 
 
 def main(argv=None):
@@ -234,12 +284,10 @@ def main(argv=None):
     p.add_argument("pdf_dir")
     p.add_argument("labels")
     p.add_argument("--pages", type=int)
-    p = sp.add_parser("evolve")
+    p = sp.add_parser("search")
     p.add_argument("--person", choices=list(PERSONS))
-    p.add_argument("--gens", type=int, default=EvolveCfg().gens)
-    p.add_argument("--pop", type=int, default=EvolveCfg().pop)
+    p.add_argument("--iters", type=int, default=QDCfg().iters)
     p.add_argument("--workers", type=int, default=8)
-    p.add_argument("--cap", type=int, default=200)
     p = sp.add_parser("metrics")
     p.add_argument("-o", "--out", default=str(Paths().data / "metrics.json"))
     p.add_argument("--writers", type=int, default=60)

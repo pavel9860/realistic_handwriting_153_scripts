@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use hwsynth, please cite it as below."
-title: "hwsynth: natural synthetic handwriting in 151 Unicode scripts"
+title: "hwsynth: natural synthetic handwriting in 153 Unicode scripts"
 authors:
   - family-names: "pavel9860"
 type: software

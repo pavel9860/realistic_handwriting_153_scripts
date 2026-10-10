@@ -110,7 +110,7 @@ def _ablate(w, what):
     return w
 
 
-SYSTEMS = ("font", "random", "prior", "bank", "bank_no_pen", "bank_no_noise", "bank_no_joins")
+SYSTEMS = ("font", "random", "prior", "bank", "bank_no_scan", "bank_no_pen", "bank_no_noise", "bank_no_joins")
 
 
 def writer_for(system, i, style="casual"):
@@ -134,7 +134,7 @@ def generate(system, n_writers, texts, style="casual", motion=None):
             if w is None:
                 c = font_baseline(t, i)
             else:
-                c, lay = line_crop(w, t, layout=True)
+                c, lay = line_crop(w, t, layout=True, scan=False if system == "bank_no_scan" else None)
                 if motion is not None:
                     P = [s.plan for s in lay.strokes if s.plan is not None and len(s.plan) > 8]
                     motion += [(energy(q, w.p["size"]), turning_entropy(q)) for q in P]

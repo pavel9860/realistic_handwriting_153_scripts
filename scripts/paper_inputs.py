@@ -16,7 +16,8 @@ NAMES = {
     "font": "font rendering",
     "random": "random writers",
     "prior": "type priors",
-    "bank": "evolved bank",
+    "bank": "searched bank",
+    "bank_no_scan": "bank, no scan model",
     "bank_no_pen": "bank, no pen model",
     "bank_no_noise": "bank, no shape variation",
     "bank_no_joins": "bank, no joins",
@@ -37,10 +38,10 @@ def main(path):
     font = next(r for r in sys_rows if r["system"] == "font")
     d = dist.get(True, {})
     (PAPER / "abstract_numbers.tex").write_text(
-        f"On held-out real handwriting the evolved bank reaches a Fr\\'echet embedding distance of "
+        f"On held-out real handwriting the searched bank reaches a Fr\\'echet embedding distance of "
         f"{bank['fd_embed']:.3f} against {font['fd_embed']:.3f} for font rendering and {real['fd_embed']:.3f} between "
-        f"two halves of the real data, and its twenty types are identified with "
-        f"{100 * d.get('pen_path_type', 0):.0f}\\,\\% top-1 accuracy (chance 5\\,\\%).\n"
+        f"two halves of the real data, and its {d.get('types', 24)} types are identified with "
+        f"{100 * d.get('pen_path_type', 0):.0f}\\,\\% top-1 accuracy (chance {100 * d.get('chance_type', 0.05):.0f}\\,\\%).\n"
     )
     out = [
         r"\subsection{Realism and diversity}",
@@ -61,7 +62,7 @@ def main(path):
         )
     out += [
         r"\bottomrule\end{tabular}",
-        r"\caption{Systems against held-out real handwriting (casual style, texts disjoint from the fitness texts).}",
+        r"\caption{Systems against held-out real handwriting (casual style, texts disjoint from the search texts).}",
         r"\label{tab:systems}\end{table*}",
         "",
         r"\subsection{Styles and effort}",
@@ -92,7 +93,7 @@ def main(path):
             )
     out += [
         r"\bottomrule\end{tabular}",
-        r"\caption{Evolved bank per style, ordered by effort.}",
+        r"\caption{Searched bank per style, ordered by effort.}",
         r"\label{tab:styles}\end{table}",
         "",
         r"\subsection{Distinguishable types, individuals and styles}",
@@ -113,7 +114,7 @@ def main(path):
         out.append(f"chance & & {f(r['chance_type'])} & {f(r['chance_individual'], 4)} & {f(r['chance_style'])}\\\\")
     out += [
         r"\bottomrule\end{tabular}",
-        r"\caption{Identification accuracy (20 types, 5 styles).}",
+        f"\\caption{{Identification accuracy ({next(iter(dist.values()))['types'] if dist else 24} types, 5 styles).}}",
         r"\label{tab:dist}\end{table}",
     ]
     (PAPER / "results.tex").write_text("\n".join(out) + "\n")
@@ -134,9 +135,11 @@ def main(path):
     figs = PAPER / "figs"
     figs.mkdir(exist_ok=True)
     caps = {
-        "persons": "One individual of each of the 20 types (casual style).",
+        "persons": "One individual of each of the 24 types (casual style).",
         "styles_school_cursive": "One school-cursive individual in the 10 styles.",
         "scripts": "Random individuals writing 32 scripts.",
+        "math_chemistry": "Inline mathematics and chemistry.",
+        "figures": "Hand-drawn figures by four types.",
         "tools": "The 17 tools at light and strong push.",
         "hands": "Right hand and left hand (gel, fountain pen, pencil): upright slant and smudges.",
     }

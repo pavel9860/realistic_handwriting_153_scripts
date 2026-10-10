@@ -1,21 +1,25 @@
-# hwsynth: natural synthetic handwriting in 151 Unicode scripts
+# hwsynth: natural synthetic handwriting in 153 Unicode scripts
 
 `hwsynth` writes any text by hand in almost every script that Unicode encodes. It is not a font renderer. Letters
 are traced from handwriting fonts (Noto for scripts without one) into pen paths. Those paths are rewritten by a
 writer model and moved by a model of the hand (lognormal sub-movements, wrist pivots). A model of the writing tool
-(17 pens, pencils, markers and nibs with pressure and angle) then puts ink on paper. Writers come in **20 handwriting
-types**, each available in **10 styles**, written with either hand. An evolved bank of individuals keeps every
+(17 pens, pencils, markers and nibs with pressure and angle) then puts ink on paper. Writers come in **24 handwriting
+types**, each available in **10 styles**, written with either hand. A bank of individuals found by quality-diversity search keeps every
 type realistic against real scanned handwriting while keeping the types apart.
 
 It runs on CPU, needs no trained network, and uses no language model.
 
 ![scripts](examples/scripts.jpg)
 
+![math and chemistry](examples/math_chemistry.jpg)
+
+![figures](examples/figures.jpg)
+
 ## Install
 
 ```bash
 pip install -e .                    # core
-pip install -e ".[evolve,dev]"      # evolution, metrics, tests
+pip install -e ".[evolve,dev]"      # search, metrics, tests
 python scripts/fetch_fonts.py       # 59 handwriting fonts + 158 Noto Sans fallbacks (~190 MB, OFL/Apache)
 hwsynth coverage                    # scripts that can be written
 ```
@@ -28,7 +32,7 @@ Fonts go to `~/.cache/hwsynth/fonts`, or set `HWSYNTH_FONTS`. Shaping needs Pill
 import hwsynth as H
 
 w = H.sample_writer("school_cursive", "hurried", seed=7)   # a new individual of a type, in a style
-s = H.write("Meet me at the station at 5:30.", w, width_mm=120, dpi=200)
+s = H.write("Meet me at the station at 5:30.", w, width_mm=120, dpi=200, scan=None)  # scan look half the time
 s.image   # (H, W, 3) uint8 on paper
 s.ink     # (H, W) ink density in [0, 1], for compositing on your own backgrounds
 s.words   # [(text, (x0, y0, x1, y1) px, struck_out)] word boxes, for OCR / layout data
@@ -38,6 +42,16 @@ person, genes = H.individual("elderly", seed=3)             # one individual ...
 for style in H.STYLES:                                       # ... in every situation
     H.write("Dear Anna,", H.styled(person, genes, style, seed=1))
 ```
+
+Math and chemistry go inline between `$...$`, and figures are drawn by the same hand:
+
+```python
+H.write(r"Solve $x^{2}-5x+6=0$: $x=\frac{5\pm 1}{2}$; burn $\ce{CH4 + 2O2 -> CO2 + 2H2O}$ $\benzene$", w)
+H.figure("axes", w, size=50)          # circle ellipse triangle square rectangle arrow star check cross axes underline
+```
+
+Supported: `^` `_` with `{...}` groups, `\frac`, `\sqrt`, Greek letters and symbols (`\int \sum \pi \infty \pm \leq ...`),
+drawn arrows `-> <- => <=>`, `\ce{...}` (subscripted counts, charges, reaction arrows), `\benzene`.
 
 ```bash
 hwsynth write "Привет, мир" -o hello.png --person copperplate --style formal
@@ -54,10 +68,12 @@ hwsynth examples -o examples
 | Hand movement | Strokes re-synthesised as overlapping lognormal sub-movements (Plamondon's Kinematic Theory). Fluent writers cut corners and careful ones reach them. Discrete-stroke scripts overlap less. Wrist pivot arcs reset at each hand shift. | `motion.py` |
 | Tool and ink | 17 tools: round, broad and brush nibs; solid, viscous and fluid inks (Franke & Rose). Width and density follow speed, push and downstroke pressure. Also nib angle, ink skips, pooling, bleed, graphite grain, overlap darkening, ink-flow drift, and left-hand smudges. | `pen.py`, `config.TOOLS` |
 | Paper | Tint, fibre noise, optional ruling the writer follows | `page.py` |
+| Scan | Ageing paper (yellowing, foxing), fading ink, bleed-through, uneven light, greyscale/bitonal, noise, blur, dust, JPEG | `scan.py` |
 
-**20 types** (`H.PERSONS`): school_cursive, round_print, compact_print, block_capitals, backhand, angular_cursive,
+**24 types** (`H.PERSONS`): school_cursive, round_print, compact_print, block_capitals, backhand, angular_cursive,
 thready, wide_garland, narrow_tall, micro, expansive, arcade, print_script, elderly, child, left_hooked,
-copperplate, sloppy_fast, ruled_neat, artistic. A type fixes the centre of every identity gene, and an individual
+copperplate, sloppy_fast, ruled_neat, rounded_neat, bubbly_print, looped_cursive, soft_upright, artistic. The four
+rounded types are round, open and regular, some with circle i-dots: the hands usually perceived as feminine. A type fixes the centre of every identity gene, and an individual
 varies within ±12 % of each gene range.
 
 **10 styles** (`H.STYLES`): casual, formal, accurate, calligraphic, professional, hurried, medical, educated,
@@ -65,14 +81,18 @@ uneducated, unsupported (written on a sheet held in the hand). A style remaps th
 ranges. The writer keeps its relative position inside each range, and its identity is unchanged, apart from
 explicit shifts such as faster joins when hurried.
 
-## Evolution and evaluation
+## Writer bank and evaluation
 
 ```bash
 hwsynth refs  PDF_DIR LABELS.pkl    # real line references: fit / test split by document
-hwsynth evolve --gens 12            # all 20 types jointly -> ~/.cache/hwsynth/data/writers_<type>.json
+hwsynth search --iters 12           # MAP-Elites over all 20 types -> ~/.cache/hwsynth/data/writers_<type>.json
 hwsynth metrics -o metrics.json
 ```
 
+- **Quality-diversity search (MAP-Elites).** For each type there's an archive over measured slant × pen lifts per
+  letter. Each cell keeps the best individual by realism, minus a penalty for baseline instability above what real
+  handwriting shows. The penalty is calibrated on real lines from scanned handwriting: clean lines run from 0.13 to
+  0.35 x-heights. Individuals must also stay nearer their own type than any other.
 - **Realism.** How typical a writer's lines are among real handwritten lines, measured on ResNet18 (ImageNet)
   embeddings and on 22 stroke features. Each is z-scored against real lines, leaving out the line's own document.
 - **Separation.** Distance to the writer's own type centroid against the nearest other type's centroid, on two
@@ -83,13 +103,24 @@ hwsynth metrics -o metrics.json
   re-evaluated with fresh seeds.
 - **Metrics.** Fréchet distances (embeddings, stroke features), k-NN precision and recall, diversity, writer, type
   and style identification, Tesseract character error rate, and speed. Each is compared against plain font
-  rendering, random writers, unevolved types and ablations. See [docs/results.md](docs/results.md).
+  rendering, random writers, type priors and ablations. See [docs/results.md](docs/results.md).
+
+## How far it gets
+
+On held-out real scanned handwriting, the searched bank closes about three quarters of the gap between plain font
+rendering and real handwriting: embedding Fréchet distance 0.158, against 0.433 for fonts and 0.065 between real
+documents. Its 24 types are identified 58 % of the time from other individuals (chance 4 %). Full tables are in
+[docs/results.md](docs/results.md).
+
+![progression](docs/progression.png)
+
+![search](docs/search.png)
 
 ## Layout
 
 ```
-src/hwsynth/   config, scripts, fonts, skeleton, writer, motion, pen, page, styles,
-               realism, evolve, writerid, features, metrics, cli
+src/hwsynth/   config, scripts, fonts, skeleton, writer, motion, pen, page, styles, math, figures,
+               realism, qd, writerid, features, metrics, cli
 tests/         pytest suite (fast; font-dependent tests skip without fonts)
 scripts/       fetch_fonts.py
 examples/      sheets produced by `hwsynth examples`

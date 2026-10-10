@@ -93,10 +93,14 @@ def trajectory_descriptor(strokes, xh, frag=0.6):
     return np.r_[S.mean(0), S.std(0), th / max(th.sum(), 1), dh / max(dh.sum(), 1), len(strokes) / max(length, 1e-6)]
 
 
-def chi2(a, b):
-    """Chi-square distances between rows of a (N, D) and b (M, D)."""
-    a, b = np.atleast_2d(a)[:, None], np.atleast_2d(b)[None]
-    return 0.5 * ((a - b) ** 2 / (a + b + 1e-12)).sum(-1)
+def chi2(a, b, chunk=64):
+    """Chi-square distances between rows of a (N, D) and b (M, D), in row chunks to bound memory."""
+    a, b = np.atleast_2d(a), np.atleast_2d(b)
+    out = np.empty((len(a), len(b)))
+    for i in range(0, len(a), chunk):
+        x = a[i : i + chunk, None]
+        out[i : i + chunk] = 0.5 * ((x - b[None]) ** 2 / (x + b[None] + 1e-12)).sum(-1)
+    return out
 
 
 def euclid(a, b):
