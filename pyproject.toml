@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hwsynth"
+version = "0.1.0"
+description = "Natural synthetic handwriting in almost every Unicode script: writer types, styles, pens, evolved writer banks"
+readme = "README.md"
+license = { text = "CC-BY-NC-4.0" }
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.13",
+    "opencv-python-headless>=4.9",
+    "pillow>=10.0",
+    "scikit-image>=0.22",
+    "fonttools>=4.40",
+    "regex>=2023.0",
+]
+
+[project.optional-dependencies]
+evolve = ["torch>=2.2", "torchvision>=0.17", "pymupdf>=1.24"]
+dev = ["pytest>=8", "pytest-xdist>=3.5"]
+
+[project.scripts]
+hwsynth = "hwsynth.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+hwsynth = ["data/*", "data/banks/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B"]
+ignore = ["E731", "E402", "E501", "B905", "B007", "B008", "B019", "B023"]
