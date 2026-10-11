@@ -38,7 +38,7 @@ s.ink     # (H, W) ink density in [0, 1], for compositing on your own background
 s.words   # [(text, (x0, y0, x1, y1) px, struck_out)] word boxes, for OCR / layout data
 s.meta    # writer, tool, ink, x-height, hand, ruled, dpi
 
-person, genes = H.individual("elderly", seed=3)             # one individual ...
+person, genes = H.individual("iam", seed=3)                 # a persona fitted to a real writer (or a type name)
 for style in H.STYLES:                                       # ... in every situation
     H.write("Dear Anna,", H.styled(person, genes, style, seed=1))
 ```
@@ -63,6 +63,7 @@ hwsynth examples -o examples
 | Layer | What it does | Where |
 |---|---|---|
 | Letters | Handwriting-font glyphs traced to centrelines (skeleton graph, straight continuation through junctions). Grapheme clusters are drawn one by one. Shaped scripts (Arabic, Indic, Southeast Asian) are drawn word by word. Bidi order is kept. | `skeleton.py`, `scripts.py`, `fonts.py` |
+| Symbol habits | Crossed 7 and z, slashed zero, flagged 1, quote style, & as + (per writer, probabilities per type) | `writer.py`, `config.HABITS` |
 | Writer (identity) | Slant, width, ascender and descender length, capitals, spacing, letter joins, angular or rounded movement, entry hooks and exit flicks, dot placement, pressure, allograph set with a second-allograph share, hand | `config.GENES`, `writer.py` |
 | Situation (state) | Speed, care, jitter correlated between neighbouring letters, decay towards word ends, slant drift, baseline wander, cross-outs, retracing, mixed capitals | `config.STYLES`, `writer.py` |
 | Hand movement | Strokes re-synthesised as overlapping lognormal sub-movements (Plamondon's Kinematic Theory). Fluent writers cut corners and careful ones reach them. Discrete-stroke scripts overlap less. Wrist pivot arcs reset at each hand shift. | `motion.py` |
@@ -84,8 +85,9 @@ explicit shifts such as faster joins when hurried.
 ## Writer bank and evaluation
 
 ```bash
-hwsynth refs  PDF_DIR LABELS.pkl    # real line references: fit / test split by document
-hwsynth search --iters 12           # MAP-Elites over all 20 types -> ~/.cache/hwsynth/data/writers_<type>.json
+hwsynth refs --iam DIR --pdf-dir DIR  # real references: IAM forms (primary), web documents per script (secondary)
+hwsynth search --iters 12           # MAP-Elites over the 24 types (checkpointed, resumable)
+hwsynth fit --pages 600             # personas fitted to real writers of the IAM fit split (resumable)
 hwsynth metrics -o metrics.json
 ```
 
@@ -107,10 +109,13 @@ hwsynth metrics -o metrics.json
 
 ## How far it gets
 
-On held-out real scanned handwriting, the searched bank closes about three quarters of the gap between plain font
-rendering and real handwriting: embedding Fréchet distance 0.158, against 0.433 for fonts and 0.065 between real
-documents. Its 24 types are identified 58 % of the time from other individuals (chance 4 %). Full tables are in
-[docs/results.md](docs/results.md).
+On held-out IAM handwriting forms (split by form group), the searched bank closes about 71 % of the gap between
+plain font rendering and real handwriting: embedding Fréchet distance 0.139, against 0.415 for fonts and 0.024
+between real forms. Personas fitted to real writers reach 0.129. The 24 types are identified 52 % of the time from
+other individuals (chance 4 %). Full tables are in [docs/results.md](docs/results.md), and the 2D map shows each
+style's path from font rendering towards the real clouds.
+
+![map](docs/map2d.png)
 
 ![progression](docs/progression.png)
 

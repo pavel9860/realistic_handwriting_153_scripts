@@ -21,6 +21,17 @@ class Paths:
 
     @property
     def refs(self):
+        """Primary real references (IAM handwriting forms)."""
+        return self.data / "real_lines_iam.npz"
+
+    @property
+    def personas(self):
+        """Personas fitted to real writers (hwsynth fit)."""
+        return self.data / "personas_iam.json"
+
+    @property
+    def refs_web(self):
+        """Secondary real references (handwritten web documents, all scripts; may be contaminated)."""
         return self.data / "real_lines.npz"
 
 
@@ -350,6 +361,15 @@ class Person:
     genes: dict
     fonts: str = "any"  # any | cursive | print
     doc: str = ""
+    habits: dict = field(default_factory=dict)  # symbol habit -> probability (overrides HABITS)
+
+
+# Symbol habits: probability that a writer has the habit (drawn once per writer from its identity). Quote styles are
+# a choice weighted by these shares.
+HABITS = {"seven_bar": 0.25, "z_bar": 0.1, "zero_slash": 0.05, "one_flag": 0.35, "amp_plus": 0.15}
+QUOTES = {"\u201c\u201d": 0.55, '""': 0.25, "\u201e\u201c": 0.1, "\u00ab\u00bb": 0.1}
+EUROPEAN = dict(seven_bar=0.8, z_bar=0.5, one_flag=0.85)
+DRAFTING = dict(zero_slash=0.6, seven_bar=0.4, z_bar=0.3, one_flag=0.2)
 
 
 PERSON_SPREAD = 0.12  # share of a gene range
@@ -382,6 +402,7 @@ PERSONS = {
             dict(slant=14, round=0.8, angular=0, connect=0.9, asc=1.25, desc=1.25, xs=1.0, ls=0.0, speed=0.4),
             "cursive",
             "taught joined script: loops, right slant, garlands",
+            habits=EUROPEAN,
         ),
         Person(
             "round_print",
@@ -394,12 +415,14 @@ PERSONS = {
             dict(slant=2, size=2.1, xs=0.85, ls=0.05, ws=1.0, connect=0.05, round=0.3, angular=0.4, size_sd=0.02),
             "print",
             "small neat narrow print",
+            habits=DRAFTING,
         ),
         Person(
             "block_capitals",
             dict(upper=1.0, slant=0, xs=0.9, ls=0.18, ws=1.6, connect=0, angular=0.6, round=0.1, size=2.6),
             "print",
             "everything in capitals, drafting style",
+            habits=DRAFTING,
         ),
         Person("backhand", dict(slant=-10, round=0.6, connect=0.3, xs=1.05, hook=0.6), "any", "left-leaning script"),
         Person(
@@ -407,6 +430,7 @@ PERSONS = {
             dict(slant=22, angular=0.9, round=0.0, connect=0.85, xs=0.85, asc=1.3, desc=1.3),
             "cursive",
             "sharp, narrow, strongly slanted joined script",
+            habits=EUROPEAN,
         ),
         Person(
             "thready",
@@ -427,7 +451,11 @@ PERSONS = {
             "narrow letters, long ascenders and descenders, tight spacing",
         ),
         Person(
-            "micro", dict(size=1.9, xs=0.9, ls=0.0, ws=0.8, pitch=2.6, asc=1.1, desc=1.1), "any", "very small writing"
+            "micro",
+            dict(size=1.9, xs=0.9, ls=0.0, ws=0.8, pitch=2.6, asc=1.1, desc=1.1),
+            "any",
+            "very small writing",
+            habits=DRAFTING,
         ),
         Person(
             "expansive",
@@ -447,6 +475,7 @@ PERSONS = {
             dict(slant=12, connect=0.7, tremor=0.5, wobble=0.4, press_sd=0.8, slope=-1.5, size=3.3, speed=0.15),
             "cursive",
             "slow tremulous joined script",
+            habits=EUROPEAN,
         ),
         Person(
             "child",
@@ -476,6 +505,7 @@ PERSONS = {
             dict(slant=24, asc=1.4, desc=1.4, round=0.8, connect=1.0, cap=1.45, xs=0.95, speed=0.15),
             "cursive",
             "steep slant, long loops, ornate capitals",
+            habits=EUROPEAN,
         ),
         Person(
             "sloppy_fast",
@@ -508,6 +538,7 @@ PERSONS = {
             ),
             "any",
             "very regular, even and aligned",
+            habits=DRAFTING,
         ),
         Person(
             "rounded_neat",
@@ -528,6 +559,7 @@ PERSONS = {
             dict(slant=10, round=0.95, angular=0.0, connect=1.0, asc=1.45, desc=1.45, xs=1.05, ring=0.3, cap=1.3),
             "cursive",
             "rounded joined script with full ascender and descender loops",
+            habits=EUROPEAN,
         ),
         Person(
             "soft_upright",
@@ -737,7 +769,7 @@ class QDCfg:
     inst_free: float = 0.15  # typical real variation: free
     inst_w: float = 4.0  # quality penalty per unit of instability above that
     inst_max: float = 0.35  # bank: never above the clean real upper range
-    min_q: float = -0.3  # bank: realism at least this after re-evaluation
+    min_q_quantile: float = 0.5  # bank: realism at least this quantile of the re-evaluated elites
     final_seeds: int = 2
     bank_sigma: float = 0.03  # gene noise around a bank writer when sampling
     texts: tuple = (  # search texts (the metrics use other texts)
@@ -746,6 +778,44 @@ class QDCfg:
         "Sphinx of black quartz, judge my vow 1984",
         "Le cœur déçu mais l'âme plutôt naïve",
     )
+
+
+@dataclass(frozen=True)
+class FitCfg:
+    pages: int = 600  # real writers (fit-split pages) to fit
+    init: int = 10  # random individuals of random types to start from
+    gens: int = 5
+    batch: int = 8
+    elite: int = 4
+    sigma: float = 0.12
+    sigma_decay: float = 0.75
+    feat_w: float = 0.02  # weight of the stroke-feature distance against the hinge chi-square
+    seed: int = 0
+    genes: tuple = (
+        "size",
+        "xs",
+        "asc",
+        "desc",
+        "cap",
+        "slant",
+        "slant_sd",
+        "size_sd",
+        "base_sd",
+        "ls",
+        "ws",
+        "round",
+        "angular",
+        "connect",
+        "speed",
+        "effort",
+        "press",
+        "font",
+        "letters",
+        "trail",
+        "flat",
+        "wobble",
+    )
+    texts: tuple = ("the quick brown fox jumps over the lazy dog", "Sphinx of black quartz, judge my vow 1984")
 
 
 @dataclass(frozen=True)

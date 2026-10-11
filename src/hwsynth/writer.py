@@ -7,7 +7,7 @@ import numpy as np
 import regex
 
 from . import scripts as S
-from .config import GENE_INDEX, GENES, LEFT_HANDED, GlyphCfg, MotionCfg
+from .config import GENE_INDEX, GENES, HABITS, LEFT_HANDED, QUOTES, GlyphCfg, MotionCfg
 from .fonts import FontIndex, em_per_xh
 from .noise import Field, noise1d
 from .pen import Pen
@@ -85,7 +85,7 @@ def _sharpen(s, tol):
 class Writer:
     """genes: vector in [0, 1] (config.GENES); font_class: preferred allograph class; pens: pen prior."""
 
-    def __init__(self, genes, seed=0, font_class="any", pens=None, fonts=None, name="", paper="any"):
+    def __init__(self, genes, seed=0, font_class="any", pens=None, fonts=None, name="", paper="any", habits=None):
         self.genes = np.asarray(genes, float)
         self.p = decode(self.genes)
         self.rng = np.random.default_rng(seed)
@@ -97,6 +97,7 @@ class Writer:
         keep = [GENE_INDEX[n] for n in STABLE]  # genes no style changes: the same person in every style
         self.identity = int(np.round(self.genes[keep] * 50).astype(int) @ (31 ** np.arange(len(keep)) % 1000003))
         self.slant_drift = 0.0
+        self.habits = self._draw_habits(habits or HABITS)
         self.mcfg = MotionCfg()
         self.pivot_r = self.rng.uniform(*self.mcfg.pivot_radius)
         self.lam = effort_lambda(self.p["effort"], self.mcfg)
@@ -134,6 +135,7 @@ class Writer:
             if f is None:
                 continue
             strokes, adv = glyph(f, u)
+            strokes = self._marks(strokes, u)
             em = size * em_per_xh(f, scr if scr != "Common" else "Latin", GlyphCfg().px)
             kk = (n - 1 - k) if rtl else k
             decay = 1 - p["trail"] * 0.3 * max(0.0, kk / max(n - 1, 1) - 0.4) / 0.6 if n > 3 else 1.0
@@ -181,6 +183,44 @@ class Writer:
         if (not closed and abs(d[0]) > 2 * abs(d[1]) and d[0] > 0) or (closed and self.rng.random() < 0.5):
             return s[::-1]
         return s
+
+    def _draw_habits(self, probs):
+        """The writer's symbol habits: each drawn once from its identity (the same in every style)."""
+        import zlib
+
+        u = lambda k: zlib.crc32(f"{self.identity}/{k}".encode()) / 2**32
+        out = {k: u(k) < p for k, p in probs.items()}
+        styles, w = list(QUOTES), np.array(list(QUOTES.values()))
+        out["quotes"] = styles[int(np.searchsorted(np.cumsum(w / w.sum()), u("quotes")))]
+        return out
+
+    def _symbols(self, text):
+        """Text with the writer's quotes and ampersand habit."""
+        h = self.habits
+        if h.get("amp_plus"):
+            text = text.replace("&", "+")
+        if '"' in text:
+            q, parts = h["quotes"], text.split('"')
+            text = "".join(p + (q[k % 2] if k < len(parts) - 1 else "") for k, p in enumerate(parts))
+        return text
+
+    def _marks(self, strokes, unit):
+        """Extra strokes of the writer's symbol habits (em, y down): crossed 7 and z, slashed 0, flagged 1."""
+        h = self.habits
+        key = {"7": "seven_bar", "z": "z_bar", "Z": "z_bar", "0": "zero_slash", "1": "one_flag"}.get(unit)
+        if not key or not h.get(key) or not strokes:
+            return strokes
+        a = np.vstack(strokes)
+        (x0, y0), (x1, y1) = a.min(0), a.max(0)
+        w, hh, ym = x1 - x0, y1 - y0, (y0 + y1) / 2
+        if key in ("seven_bar", "z_bar"):
+            extra = np.array([[x0 + 0.2 * w - 0.12 * hh, ym], [x1 - 0.05 * w + 0.12 * hh, ym]])
+        elif key == "zero_slash":
+            extra = np.array([[x0 + 0.1 * w, y1 - 0.1 * hh], [x1 - 0.1 * w, y0 + 0.1 * hh]])
+        else:
+            top = a[a[:, 1].argmin()]
+            extra = np.array([top, top + (-0.35 * hh, 0.28 * hh)])
+        return tuple(strokes) + (resample(extra, GlyphCfg().step),)
 
     def _personal(self, s, unit, font):
         """The writer's own version of a letter: a smooth deformation and a width, height and slant tweak that are
@@ -361,6 +401,7 @@ class Writer:
         p["size"] = max(p["size"], 4 * self.pen.edge, 5 * self.pen.width)  # x-height of at least 4 nib widths
         xh = p["size"]
         pitch = rules or max(p["pitch"], self.min_pitch()) * xh
+        text = self._symbols(text)
         rtl = S.text_rtl(text)
         toks = self.tokens(text)
         placed, words = [], []

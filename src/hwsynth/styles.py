@@ -4,7 +4,19 @@ import json
 
 import numpy as np
 
-from .config import CENTRED, GENE_INDEX, GENES, IDENTITY, NOISE_SKEW, PERSON_SPREAD, PERSONS, STYLES, QDCfg, Paths
+from .config import (
+    HABITS,
+    CENTRED,
+    GENE_INDEX,
+    GENES,
+    IDENTITY,
+    NOISE_SKEW,
+    PERSON_SPREAD,
+    PERSONS,
+    STYLES,
+    QDCfg,
+    Paths,
+)
 from .writer import Writer, encode
 
 
@@ -71,10 +83,28 @@ def load_bank(person, paths=Paths()):
     return []
 
 
+def personas(paths=Paths()):
+    """Personas fitted to real writers: the local file (hwsynth fit) if present, else the one shipped."""
+    from pathlib import Path
+
+    for f in (paths.personas, Path(__file__).parent / "data" / "banks" / "personas_iam.json"):
+        if f.exists():
+            return [e for e in json.loads(f.read_text()) if len(e["genes"]) == len(GENES)]
+    return []
+
+
 def individual(person=None, seed=0, bank=True, paths=Paths(), cfg=QDCfg()):
     """(person, genes) of one individual: from the evolved bank of the type when there is one (with small gene
     noise), else freshly drawn. person None: a random type."""
     rng = np.random.default_rng(seed)
+    if person is not None and person.startswith("iam"):
+        ps = personas(paths)
+        if not ps:
+            raise ValueError("no fitted personas (run hwsynth fit)")
+        e = next((x for x in ps if x["page"] == person[4:]), None) if ":" in person else ps[int(rng.integers(len(ps)))]
+        if e is None:
+            raise ValueError(f"unknown persona {person}")
+        return f"iam:{e['page']}", np.array(e["genes"])
     if person is None:
         person = list(PERSONS)[int(rng.integers(len(PERSONS)))]
     entries = load_bank(person, paths) if bank else []
@@ -84,11 +114,27 @@ def individual(person=None, seed=0, bank=True, paths=Paths(), cfg=QDCfg()):
     return person, person_genes(person, rng)
 
 
+def _persona_type(person):
+    """Handwriting type of a person name: the type itself, or the nearest type of a fitted persona."""
+    if person and person.startswith("iam:"):
+        e = next((x for x in personas() if x["page"] == person[4:]), None)
+        return e["type"] if e else None
+    return person
+
+
 def styled(person, genes, style="casual", seed=0):
     """Writer of an individual in a style; seed drives everything situational (pen, jitter, layout)."""
     st = STYLES[style]
+    kind = _persona_type(person)
+    habits = dict(HABITS, **(PERSONS[kind].habits if kind in PERSONS else {}))
     return Writer(
-        apply_style(genes, style), seed, font_class(person, style), st.pens, name=f"{person}/{style}", paper=st.paper
+        apply_style(genes, style),
+        seed,
+        font_class(kind, style),
+        st.pens,
+        name=f"{person}/{style}",
+        paper=st.paper,
+        habits=habits,
     )
 
 

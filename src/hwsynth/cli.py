@@ -3,8 +3,9 @@
 hwsynth write "text" -o out.png [--person P --style S --seed N --width 150 --dpi 200]
 hwsynth examples -o examples/                 persons, styles and scripts sheets
 hwsynth coverage                              scripts that can be written (font coverage of Scripts.txt)
-hwsynth refs PDF_DIR LABELS.pkl               real line references (fit / test split)
+hwsynth refs --iam DIR [--pdf-dir DIR --labels L]  real line references (fit / test split)
 hwsynth search [--person P] [--iters N]       quality-diversity search of the writer banks
+hwsynth fit [--pages 600]                     personas fitted to real writers (IAM fit split)
 hwsynth metrics -o metrics.json               metrics of all systems and styles
 """
 
@@ -221,9 +222,12 @@ def cmd_coverage(a):
 
 
 def cmd_refs(a):
-    from .realism import build_refs
+    from .realism import build_image_refs, build_refs
 
-    build_refs(a.pdf_dir, a.labels, pages=a.pages)
+    if a.iam:
+        build_image_refs(a.iam, Paths().refs)
+    if a.pdf_dir:
+        build_refs(a.pdf_dir, a.labels, Paths().refs_web, pages=a.pages)
 
 
 def cmd_search(a):
@@ -239,26 +243,40 @@ def cmd_search(a):
     )
 
 
+def cmd_fit(a):
+    from .config import FitCfg
+    from .fit import fit_personas
+
+    fit_personas(cfg=FitCfg(pages=a.pages), workers=a.workers, log=lambda m: print(m, flush=True))
+
+
 def cmd_metrics(a):
     from .metrics import SYSTEMS, distinguishability, evaluate, real_baseline
     from .realism import Realism
 
     r = Realism("test")
-    rows = []
+    out = Path(a.out)
+    rows = json.loads(out.read_text()) if out.exists() else []  # resumes: rows already measured are kept
+    have = {(x["system"], x.get("style"), x.get("bank")) for x in rows}
 
-    def add(row):  # saved after every row: a crash never loses finished work
-        rows.append(row)
-        print(row, flush=True)
-        Path(a.out).write_text(json.dumps(rows, indent=1, ensure_ascii=False))
+    def add(key, make):
+        if key in have:
+            return
+        rows.append(make())
+        print(rows[-1], flush=True)
+        out.write_text(json.dumps(rows, indent=1, ensure_ascii=False))
 
-    add(real_baseline(r))
+    add(("real (held-out half)", "-", None), lambda: real_baseline(r))
     for s in SYSTEMS:
-        add(evaluate(s, r, r, a.writers))
+        add((s, "casual", None), lambda s=s: evaluate(s, r, r, a.writers))
     for st in STYLES:
         if st != "casual":
-            add(evaluate("bank", r, r, a.writers // 2, st))
+            add(("bank", st, None), lambda st=st: evaluate("bank", r, r, a.writers // 2, st))
     for bank in (False, True):
-        add(dict(system="distinguishability", bank=bank, **distinguishability(bank=bank)))
+        add(
+            ("distinguishability", None, bank),
+            lambda bank=bank: dict(system="distinguishability", bank=bank, **distinguishability(bank=bank)),
+        )
 
 
 def main(argv=None):
@@ -281,12 +299,16 @@ def main(argv=None):
     p = sp.add_parser("coverage")
     p.add_argument("--list", action="store_true")
     p = sp.add_parser("refs")
-    p.add_argument("pdf_dir")
-    p.add_argument("labels")
+    p.add_argument("--iam", help="folder of IAM handwriting form images (primary references)")
+    p.add_argument("--pdf-dir", help="folder of handwritten PDFs (secondary, per-script references)")
+    p.add_argument("--labels", help="labelled lines (pickle) for the handwriting filter of --pdf-dir")
     p.add_argument("--pages", type=int)
     p = sp.add_parser("search")
     p.add_argument("--person", choices=list(PERSONS))
     p.add_argument("--iters", type=int, default=QDCfg().iters)
+    p.add_argument("--workers", type=int, default=8)
+    p = sp.add_parser("fit")
+    p.add_argument("--pages", type=int, default=600)
     p.add_argument("--workers", type=int, default=8)
     p = sp.add_parser("metrics")
     p.add_argument("-o", "--out", default=str(Paths().data / "metrics.json"))

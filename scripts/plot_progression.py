@@ -50,8 +50,9 @@ def main():
         )
         ends.append([m[-1], st])
     ends.sort()
-    for i in range(1, len(ends)):  # end labels at least 0.045 apart
-        ends[i][0] = max(ends[i][0], ends[i - 1][0] + 0.045)
+    lo, hi = ax.get_ylim()
+    for i in range(1, len(ends)):  # end labels at least 4 % of the axis apart
+        ends[i][0] = max(ends[i][0], ends[i - 1][0] + 0.04 * (hi - lo))
     for y, st in ends:
         ax.text(len(stages) - 1 + 0.15, y, st, color="#2b2b28", fontsize=9, va="center")
     ax.set_xticks(range(len(stages)), [s.replace(" ", "\n") for s in stages], fontsize=9, color="#3d3d39")
@@ -75,7 +76,8 @@ def main():
         0.01,
         0.01,
         "Mean ± s.e. over 16 writers × 2 texts per point; higher = more typical of real scanned "
-        "handwriting.\nThe z-score saturates above 0, so later steps change it little. Writers from type priors.",
+        "handwriting (IAM test forms, 0 = their mean).\nAfter the writer stage the measure changes little; the 2D map resolves the "
+        "later stages better. Writers from type priors.",
         fontsize=7.5,
         color="#6b6b65",
     )

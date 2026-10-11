@@ -80,3 +80,22 @@ def test_personal_letters_stable_across_styles():
     g = g.copy()
     g[GENE_INDEX["letters"]] = 1.0
     assert len({H.styled(per, g, s, 1).identity for s in ("casual", "formal", "hurried", "medical")}) == 1
+
+
+@needs_fonts
+def test_symbol_habits_stable_and_applied():
+    per, g = H.individual("block_capitals", 3, bank=False)
+    ws = [H.styled(per, g, s, i) for i, s in enumerate(("casual", "formal", "hurried"))]
+    assert all(w.habits == ws[0].habits for w in ws)
+    w = ws[0]
+    w.habits.update(quotes="«»", amp_plus=True)
+    assert w._symbols('say "hi" & go') == "say «hi» + go"
+
+
+def test_fitted_personas_load():
+    from hwsynth.styles import personas
+
+    ps = personas()
+    if ps:
+        name, g = H.individual("iam", 1)
+        assert name.startswith("iam:") and len(g) == len(ps[0]["genes"])

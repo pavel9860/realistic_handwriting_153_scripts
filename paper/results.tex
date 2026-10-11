@@ -1,48 +1,45 @@
-\subsection{Realism and diversity}
-Table~\ref{tab:systems} compares the systems on the held-out test documents. Lower Fr\'echet distances (FD) and higher precision and recall mean closer to real handwriting; the first row is the reference level of real handwriting against other real handwriting.
 \begin{table*}[t]\centering\small
 \begin{tabular}{lrrrrrrrrr}\toprule
-system & realism & FD emb. & FD feat. & precision & recall & diversity & writer id & CER & ms/line\\\midrule
-real (other documents) & -- & 0.065 & 3.70 & 0.746 & 0.658 & -- & -- & -- & --\\
-font rendering & -0.428 & 0.433 & 28.11 & 0.338 & 0.000 & 0.0941 & 0.106 & 0.048 & 10\\
-random writers & 0.242 & 0.180 & 18.36 & 0.519 & 0.070 & 0.1702 & 0.350 & 0.587 & 536\\
-type priors & 0.280 & 0.160 & 17.13 & 0.594 & 0.082 & 0.1755 & 0.338 & 0.451 & 369\\
-searched bank & 0.402 & 0.158 & 16.45 & 0.688 & 0.064 & 0.1679 & 0.338 & 0.390 & 309\\
-bank, no scan model & 0.480 & 0.249 & 18.70 & 0.800 & 0.016 & 0.1202 & 0.350 & 0.385 & 461\\
-bank, no pen model & 0.403 & 0.171 & 16.38 & 0.662 & 0.047 & 0.1618 & 0.287 & 0.366 & 307\\
-bank, no shape variation & 0.376 & 0.169 & 16.12 & 0.600 & 0.057 & 0.1702 & 0.325 & 0.396 & 445\\
-bank, no joins & 0.346 & 0.157 & 16.32 & 0.606 & 0.065 & 0.1729 & 0.287 & 0.328 & 308\\
+system & realism & FD emb. & FD feat. & precision & recall & diversity & writer id & CER & s/line\\\midrule
+real (other forms) & -- & 0.024 & 2.93 & 0.717 & 0.634 & -- & -- & -- & --\\
+font rendering & -5.247 & 0.415 & 228.90 & 0.100 & 0.001 & 0.0941 & 0.106 & 0.048 & 0.01\\
+random writers & -1.984 & 0.152 & 21.89 & 0.081 & 0.350 & 0.1696 & 0.356 & 0.587 & 0.73\\
+type priors & -2.159 & 0.146 & 22.05 & 0.069 & 0.303 & 0.1753 & 0.338 & 0.451 & 0.52\\
+searched bank & -2.024 & 0.139 & 37.78 & 0.138 & 0.281 & 0.1722 & 0.231 & 0.417 & 0.37\\
+fitted personas & -2.129 & 0.129 & 109.67 & 0.125 & 0.325 & 0.1705 & 0.263 & 0.390 & 0.30\\
+bank, no scan model & -1.729 & 0.242 & 21.91 & 0.194 & 0.001 & 0.1215 & 0.356 & 0.363 & 0.35\\
+bank, no pen model & -2.030 & 0.150 & 32.57 & 0.106 & 0.278 & 0.1739 & 0.294 & 0.393 & 0.29\\
+bank, no variation & -2.041 & 0.150 & 32.46 & 0.087 & 0.401 & 0.1745 & 0.225 & 0.441 & 0.31\\
+bank, no joins & -2.723 & 0.128 & 216.11 & 0.119 & 0.201 & 0.1728 & 0.331 & 0.374 & 0.30\\
 \bottomrule\end{tabular}
-\caption{Systems against held-out real handwriting (casual style, texts disjoint from the search texts).}
+\caption{Systems against held-out IAM lines (casual style, texts disjoint from search and fitting). Lower FD and higher precision and recall are closer to real handwriting.}
 \label{tab:systems}\end{table*}
 
-\subsection{Styles and effort}
-Table~\ref{tab:styles} lists the bank per style. Movement energy (jerk per unit length of the planned pen path) and turning entropy rise with the effort a style spends on letter shapes, from medical scrawl to calligraphy; legibility follows.
 \begin{table}[t]\centering\small\setlength\tabcolsep{3pt}
 \begin{tabular}{lrrrrr}\toprule style & realism & FD emb. & energy & entropy & CER\\\midrule
-medical & 0.239 & 0.201 & 1.7e-07 & 0.908 & 0.662\\
-hurried & 0.376 & 0.174 & 3.2e-07 & 0.931 & 0.544\\
-professional & 0.347 & 0.195 & 7.6e-07 & 0.950 & 0.415\\
-casual & 0.402 & 0.158 & 1.5e-06 & 0.974 & 0.390\\
-unsupported & 0.457 & 0.173 & 1.5e-06 & 0.966 & 0.394\\
-educated & 0.350 & 0.175 & 3.7e-06 & 0.996 & 0.407\\
-uneducated & 0.312 & 0.197 & 1.8e-06 & 0.968 & 0.249\\
-formal & 0.331 & 0.176 & 6.4e-06 & 1.000 & 0.348\\
-accurate & 0.423 & 0.203 & 9e-06 & 0.998 & 0.172\\
-calligraphic & 0.194 & 0.191 & 3.9e-05 & 1.203 & 0.548\\
+medical & -2.355 & 0.189 & 1.6e-07 & 0.911 & 0.584\\
+hurried & -2.462 & 0.165 & 3.2e-07 & 0.924 & 0.522\\
+professional & -2.059 & 0.160 & 7.5e-07 & 0.961 & 0.370\\
+casual & -2.024 & 0.139 & 1.6e-06 & 0.974 & 0.417\\
+unsupported & -1.873 & 0.152 & 1.5e-06 & 0.970 & 0.441\\
+educated & -1.889 & 0.165 & 3.7e-06 & 0.998 & 0.383\\
+uneducated & -1.767 & 0.158 & 2.2e-06 & 0.978 & 0.234\\
+formal & -2.239 & 0.164 & 6.8e-06 & 1.000 & 0.408\\
+accurate & -1.776 & 0.177 & 9e-06 & 0.996 & 0.164\\
+calligraphic & -2.578 & 0.158 & 3.4e-05 & 1.159 & 0.569\\
 \bottomrule\end{tabular}
-\caption{Searched bank per style, ordered by effort.}
+\caption{Searched bank per style, ordered by effort: movement energy (jerk per unit length of the planned path), turning entropy (bits) and Tesseract CER.}
 \label{tab:styles}\end{table}
 
-\subsection{Distinguishable types, individuals and styles}
-Table~\ref{tab:dist} reports top-1 nearest-neighbour identification on held-out texts: a type must be recognised from \emph{other} individuals of the type, an individual from its \emph{other} texts, a style from \emph{other} individuals.
 \begin{table}[t]\centering\small\setlength\tabcolsep{3pt}
 \begin{tabular}{llrrr}\toprule writers & features & type & individual & style\\\midrule
 prior & contour hinge & 0.312 & 0.384 & 0.442\\
 prior & path signature & 0.292 & 0.542 & 0.484\\
-bank & contour hinge & 0.520 & 0.342 & 0.510\\
-bank & path signature & 0.582 & 0.454 & 0.604\\
+bank & contour hinge & 0.453 & 0.355 & 0.473\\
+bank & path signature & 0.522 & 0.447 & 0.541\\
 chance & & 0.042 & 0.0104 & 0.200\\
 \bottomrule\end{tabular}
-\caption{Identification accuracy (24 types, 5 styles).}
+\caption{Top-1 identification on held-out texts (24 types, 5 styles): a type from other individuals, an individual from its other texts, a style from other individuals.}
 \label{tab:dist}\end{table}
+
+\paragraph{Results.} Table~\ref{tab:systems}: the searched bank closes 71\,\% of the embedding-FD gap between font rendering and real handwriting and raises precision from 0.10 to 0.14. The fitted personas reach FD 0.129 and precision 0.12. Without the scan model FD rises to 0.242 and recall falls to 0.001, while realism, which treats scanner noise as atypical of the clean IAM scans, moves up. Removing variation, joins or the pen model lowers both realism and precision; without joins the embedding FD is slightly lower, so FD alone does not rank these ablations. Table~\ref{tab:styles}: movement energy rises with effort from medical to calligraphic writing, entropy with it; accurate writing is the most legible for Tesseract and medical writing the least. Table~\ref{tab:dist}: the search makes the types much easier to tell apart while individuals stay identifiable.

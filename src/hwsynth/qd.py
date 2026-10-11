@@ -9,10 +9,12 @@ pen lifts per letter (connectedness). A cell keeps its best individual by qualit
                signature descriptors against the type centroids)
 Lines are rendered in the casual style and one random other style. New individuals are iso-line variations of two
 elites of the same type (Vassiliades & Mouret 2018), kept within the type's range. At the end every elite is
-re-evaluated with fresh seeds and kept when it still reaches min_q and stays nearer its own type.
+re-evaluated with fresh seeds and kept when its realism reaches the median of the re-evaluated elites, it stays
+nearer its own type and its instability stays within the real range.
 """
 
 import json
+import pickle
 import time
 from multiprocessing import Pool
 
@@ -178,11 +180,37 @@ def search(realism, persons=None, cfg=QDCfg(), paths=Paths(), workers=8, seed=0,
                 added += 1
         return added
 
+    state_path = paths.data / "qd_state.pkl"  # checkpoint after every iteration: a restart resumes
+
+    def save(it):
+        state = dict(
+            it=it,
+            archive=archive,
+            cents=(cents.sum, cents.n),
+            rng=rng.bit_generator.state,
+            tr=(judge.tr_mu, judge.tr_sd),
+            persons=persons,
+        )
+        tmp = state_path.with_suffix(".tmp")
+        tmp.write_bytes(pickle.dumps(state))
+        tmp.replace(state_path)
+
     with Pool(workers) as pool:
         judge = Judge(realism, pool, cfg, rng, log)
-        items = [(p, person_genes(p, rng)) for p in persons for _ in range(cfg.init)]
-        insert(items, judge(items, 1))
-        for it in range(cfg.iters):
+        start = 0
+        if state_path.exists() and pickle.loads(state_path.read_bytes())["persons"] == persons:
+            st = pickle.loads(state_path.read_bytes())
+            archive.update(st["archive"])
+            cents.sum, cents.n = st["cents"]
+            rng.bit_generator.state = st["rng"]
+            judge.tr_mu, judge.tr_sd = st["tr"]
+            start = st["it"]
+            log(f"resuming at iteration {start}")
+        else:
+            items = [(p, person_genes(p, rng)) for p in persons for _ in range(cfg.init)]
+            insert(items, judge(items, 1))
+            save(0)
+        for it in range(start, cfg.iters):
             items = []
             for p in persons:
                 el = [e["genes"] for e in archive[p].values()] or [person_genes(p, rng)]
@@ -198,13 +226,18 @@ def search(realism, persons=None, cfg=QDCfg(), paths=Paths(), workers=8, seed=0,
                 f"iter {it}: added {added}, cells {len(fits)}, quality median {np.median(fits):.3f}, "
                 f"instability median {np.median(insts):.3f}"
             )
+            save(it + 1)
         log("re-evaluating elites with fresh seeds")
         items = [(p, e["genes"]) for p in persons for e in archive[p].values()]
         res = judge(items, cfg.final_seeds)
+        (paths.data / "qd_final.pkl").write_bytes(pickle.dumps(dict(items=items, res=res, cents=(cents.sum, cents.n))))
+        ok = res["q"] > -9
+        min_q = np.quantile(res["q"][ok], cfg.min_q_quantile) if ok.any() else np.inf  # relative to the reference
+        log(f"bank threshold: realism >= {min_q:.3f} (quantile {cfg.min_q_quantile} of re-evaluated elites)")
         banks = {p: [] for p in persons}
         for (p, g), q, h, t, m in zip(items, res["q"], res["H"], res["T"], res["M"]):
             sep = cents.separation(p, h, t)
-            if q > -9 and q >= cfg.min_q and sep > 0 and m[2] <= cfg.inst_max:
+            if q > -9 and q >= min_q and sep > 0 and m[2] <= cfg.inst_max:
                 banks[p].append(
                     dict(
                         genes=np.round(g, 4).tolist(),
@@ -218,6 +251,7 @@ def search(realism, persons=None, cfg=QDCfg(), paths=Paths(), workers=8, seed=0,
     for p in persons:
         paths.bank(p).parent.mkdir(parents=True, exist_ok=True)
         paths.bank(p).write_text(json.dumps(banks[p]))
+    state_path.unlink(missing_ok=True)
     log("bank sizes: " + ", ".join(f"{p} {len(b)}" for p, b in banks.items()))
     return banks
 

@@ -87,13 +87,13 @@ def is_test(doc, share):
     return int(hashlib.md5(doc.encode()).hexdigest(), 16) % 1000 < share * 1000
 
 
-def build_refs(pdf_dir, labels, out=Paths().refs, pages=None, cfg=RefsCfg(), log=print):
+def build_refs(pdf_dir, labels=None, out=Paths().refs_web, pages=None, cfg=RefsCfg(), log=print):
     """Reference set from the first page of each PDF in pdf_dir. labels: pickle of dicts (crop, hw, file) of
     labelled lines used by the handwriting filter. Writes out (npz) and a contact sheet next to it."""
     import pymupdf
 
     files = sorted(Path(pdf_dir).glob("*.pdf"))[:pages]
-    lab = pickle.loads(Path(labels).read_bytes())
+    lab = pickle.loads(Path(labels).read_bytes()) if labels else []
     lab_docs = {Path(x["file"]).stem for x in lab}
     crops, docs = [], []
     for f in files:
@@ -108,16 +108,124 @@ def build_refs(pdf_dir, labels, out=Paths().refs, pages=None, cfg=RefsCfg(), log
             crops.append(ls[i])
             docs.append(f.stem)
     log(f"{len(crops)} lines from {len(set(docs))} documents")
-    El, y = embed([x["crop"] for x in lab]), np.array([x["hw"] for x in lab])
     E = embed(crops)
-    keep = y[np.argsort(-(E @ El.T), axis=1)[:, :5]].mean(1) >= cfg.knn_hw
+    keep = np.ones(len(crops), bool)
+    if lab:  # handwriting filter from labelled lines; without labels every clean line is kept
+        El, y = embed([x["crop"] for x in lab]), np.array([x["hw"] for x in lab])
+        keep = y[np.argsort(-(E @ El.T), axis=1)[:, :5]].mean(1) >= cfg.knn_hw
     F = [feats(c) if k else None for c, k in zip(crops, keep)]
     idx = [i for i, f in enumerate(F) if f is not None]
     docs = np.array(docs)[idx]
     test = np.array([is_test(d, cfg.test_share) and d not in lab_docs for d in docs])
     out = Path(out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    np.savez(out, E=E[idx], F=np.array([F[i] for i in idx]), doc=docs, test=test)
+    from .writerid import descriptor
+
+    Hd = [descriptor(crops[i]) for i in idx]
+    ok = [j for j, h in enumerate(Hd) if h is not None]
+    idx, docs, test, Hd = [idx[j] for j in ok], docs[ok], test[ok], [Hd[j] for j in ok]
+    scripts = np.array([doc_script(d) or "?" for d in docs])
+    np.savez(
+        out,
+        E=E[idx],
+        F=np.array([F[i] for i in idx]),
+        H=np.array(Hd),
+        doc=docs,
+        test=test,
+        script=scripts,
+        source=np.array(["web"] * len(idx)),
+    )
+    sheet([crops[i] for i in idx], out.with_suffix(".png"))
+    log(f"kept {len(idx)}: fit {int((~test).sum())}, test {int(test.sum())}")
+    return out
+
+
+LANG_SCRIPT = {
+    "ru": "Cyrillic",
+    "uk": "Cyrillic",
+    "bg": "Cyrillic",
+    "be": "Cyrillic",
+    "mk": "Cyrillic",
+    "el": "Greek",
+    "he": "Hebrew",
+    "ar": "Arabic",
+    "ur": "Arabic",
+    "fa": "Arabic",
+    "ja": "Japanese",
+    "zh": "Han",
+    "ko": "Hangul",
+    "hi": "Devanagari",
+    "th": "Thai",
+}
+LATIN_LANGS = {
+    "en",
+    "de",
+    "fr",
+    "es",
+    "it",
+    "pt",
+    "ca",
+    "nl",
+    "pl",
+    "cs",
+    "hu",
+    "sv",
+    "da",
+    "no",
+    "ro",
+    "hr",
+    "sl",
+    "et",
+    "cy",
+    "latin",
+}
+
+
+def doc_script(name):
+    """Script of a document from the language tag at the end of its file name (None if unknown or ambiguous)."""
+    import re
+
+    m = re.search(r"[._]([a-z]{2,5})(?:_p\d+)?$", name)
+    tag = m.group(1) if m else ""
+    return LANG_SCRIPT.get(tag) or ("Latin" if tag in LATIN_LANGS else None)
+
+
+def build_image_refs(img_dir, out, source="iam", scale=0.5, cfg=RefsCfg(), log=print):
+    """Reference set from page images (one writer per page, e.g. IAM handwriting forms): lines, embeddings, stroke
+    features and hinge descriptors; split into fit and test by page (writer proxy)."""
+    from .writerid import descriptor
+
+    files = sorted(p for p in Path(img_dir).iterdir() if p.suffix.lower() in (".png", ".jpg", ".tif", ".tiff"))
+    crops, docs = [], []
+    for f in files:
+        g = cv2.imread(str(f), cv2.IMREAD_GRAYSCALE)
+        if g is None:
+            continue
+        g = cv2.resize(g, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+        ls = [c for c in page_lines(g, cfg) if clean(c)]
+        rng = np.random.default_rng(int(hashlib.md5(f.stem.encode()).hexdigest()[:8], 16))
+        for i in rng.permutation(len(ls))[: cfg.lines_per_page]:
+            crops.append(ls[i])
+            docs.append(f.stem)
+    log(f"{len(crops)} lines from {len(set(docs))} pages")
+    F = [feats(c) for c in crops]
+    Hd = [descriptor(c) for c in crops]
+    idx = [i for i in range(len(crops)) if F[i] is not None and Hd[i] is not None]
+    docs = np.array(docs)[idx]
+    test = np.array([is_test(d.split("-")[0] + d.split("-")[1][:3] if "-" in d else d, cfg.test_share) for d in docs])
+    E = embed([crops[i] for i in idx])
+    out = Path(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(
+        out,
+        E=E,
+        F=np.array([F[i] for i in idx]),
+        H=np.array([Hd[i] for i in idx]),
+        doc=docs,
+        test=test,
+        script=np.array(["Latin"] * len(idx)),
+        source=np.array([source] * len(idx)),
+    )
     sheet([crops[i] for i in idx], out.with_suffix(".png"))
     log(f"kept {len(idx)}: fit {int((~test).sum())}, test {int(test.sum())}")
     return out

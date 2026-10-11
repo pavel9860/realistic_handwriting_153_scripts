@@ -45,14 +45,13 @@ def frechet(a, b):
 
 def precision_recall(real, fake, k=3):
     """Share of fake samples inside the real k-NN manifold (precision) and of real inside the fake one (recall)."""
+    from .writerid import euclid
 
     def radii(x):
-        d = np.linalg.norm(x[:, None] - x[None], axis=2)
-        return np.sort(d, axis=1)[:, k]
+        return np.sort(euclid(x, x), axis=1)[:, k]
 
     def inside(x, ref, r):
-        d = np.linalg.norm(x[:, None] - ref[None], axis=2)
-        return float((d <= r[None]).any(1).mean())
+        return float((euclid(x, ref) <= r[None]).any(1).mean())
 
     return inside(fake, real, radii(real)), inside(real, fake, radii(fake))
 
@@ -84,7 +83,10 @@ def font_baseline(text, seed):
     from .writer import _index
 
     fi = _index()
-    f = fi.choose("Latin", np.random.default_rng(seed).random())
+    from .scripts import text_script
+
+    scr = text_script(text)
+    f = fi.for_unit(fi.choose(scr if scr != "Common" else "Latin", np.random.default_rng(seed).random()), text)
     from .fonts import pil_font
 
     pf = pil_font(f, 48)
@@ -110,14 +112,24 @@ def _ablate(w, what):
     return w
 
 
-SYSTEMS = ("font", "random", "prior", "bank", "bank_no_scan", "bank_no_pen", "bank_no_noise", "bank_no_joins")
+SYSTEMS = (
+    "font",
+    "random",
+    "prior",
+    "bank",
+    "personas",
+    "bank_no_scan",
+    "bank_no_pen",
+    "bank_no_noise",
+    "bank_no_joins",
+)
 
 
 def writer_for(system, i, style="casual"):
     """i-th writer of a system (deterministic)."""
     if system == "random":
         return Writer(np.random.default_rng(10_000 + i).random(len(GENE_INDEX)), 20_000 + i)
-    person = list(PERSONS)[i % len(PERSONS)]
+    person = "iam" if system == "personas" else list(PERSONS)[i % len(PERSONS)]
     per, g = individual(person, 30_000 + i, bank=system != "prior")
     w = styled(per, g, style, 40_000 + i)
     return _ablate(w, system[5:]) if system.startswith("bank_") else w
