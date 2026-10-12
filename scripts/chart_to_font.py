@@ -1,7 +1,8 @@
 """Glyph fonts from images of handwritten alphabet charts: letters are segmented, contours traced and written as a
 TrueType font that hwsynth traces like any handwriting font.
 
-python scripts/chart_to_font.py georgian IMAGE OUT.ttf    33 Mkhedruli letters, 3 rows of 11 (annotations in blue)
+python scripts/chart_to_font.py georgian IMAGE OUT.ttf [NUSKHURI_IMAGE]
+        33 Mkhedruli letters, 3 rows of 11 (annotations in blue); optionally the 38 Nuskhuri letters (U+2D00..2D25)
 python scripts/chart_to_font.py armenian IMAGE OUT.ttf    38 capital/small pairs, 5 columns, 39 cells
 python scripts/chart_to_font.py tibetan  IMAGE OUT.ttf    30 consonants in the upper bands, 5 vowel cells
 python scripts/chart_to_font.py lao CONSONANTS SYLLABLES OUT.ttf
@@ -101,7 +102,23 @@ def comps_of(mask, min_area):
     return lab, st, cen, [i for i in range(1, n) if st[i][4] >= min_area]
 
 
-def georgian(img, out):
+def nuskhuri(img):
+    """38 Nuskhuri letters (U+2D00..2D25) of a stroke-order chart, rows of 7 (the last of 3): [(cp, glyph, advance)]."""
+    r, g, b = [img[..., i].astype(int) for i in range(3)]
+    mask = ((r < 120) & (g < 120) & (b < 120)).astype(np.uint8)
+    lab, st, cen, ids = comps_of(mask, 20)
+    assert len(ids) == 38, len(ids)
+    row = kmeans1([cen[i][1] for i in ids], 6)
+    key = sorted(zip(row, [st[i][0] for i in ids], ids))
+    order = [i for _, _, i in key]
+    rows = [r_ for r_, _, _ in key]
+    scale = XHEIGHT * 1.4 / np.median([st[i][3] for i in order])
+    base = {k: np.median([st[i][1] + st[i][3] for i, r_ in zip(order, rows) if r_ == k]) for k in set(rows)}
+    return [(0x2D00 + k, glyph((lab == i).astype(np.uint8), st[i][0], base[r_], scale), st[i][2] * scale + 80)
+            for k, (i, r_) in enumerate(zip(order, rows))]
+
+
+def georgian(img, out, old=None):
     r, g, b = [img[..., i].astype(int) for i in range(3)]
     mask = ((r < 120) & (g < 120) & (b < 120)).astype(np.uint8)
     lab, st, cen, ids = comps_of(mask, 40)
@@ -113,6 +130,8 @@ def georgian(img, out):
     ents = []
     for k, (ch, i) in enumerate(zip(GEORGIAN, order)):
         ents.append((ord(ch), glyph((lab == i).astype(np.uint8), st[i][0], base[k // 11], scale), st[i][2] * scale + 80))
+    if old is not None:
+        ents += nuskhuri(old)
     write(out, ents, "ChartGeorgian")
 
 
@@ -455,6 +474,8 @@ if __name__ == "__main__":
         lao(load(sys.argv[2]), load(sys.argv[3]), sys.argv[4])
     elif kind == "myanmar":
         myanmar(*[load(a) for a in sys.argv[2:6]], sys.argv[6])
+    elif kind == "georgian" and len(sys.argv) > 4:
+        georgian(load(sys.argv[2]), sys.argv[3], load(sys.argv[4]))
     else:
         {"georgian": georgian, "armenian": armenian, "tibetan": tibetan, "gurmukhi": gurmukhi,
          "geez": geez}[kind](load(sys.argv[2]), sys.argv[3])

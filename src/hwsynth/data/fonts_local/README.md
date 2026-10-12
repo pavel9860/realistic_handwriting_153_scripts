@@ -3,7 +3,7 @@
 | File | Source | License |
 |---|---|---|
 | SinhalaHandwriteConverted-Regular.ttf | FontForge source of Fontoshan Handwrite (skyprolk/Fontoshan-Sinhala-English-Handwrite), converted | SIL OFL 1.1, see OFL-Fontoshan.txt |
-| ChartGeorgian-Regular.ttf | traced from an image of a handwritten Mkhedruli chart with stroke-order arrows (33 letters) | provenance and licence of the image not known |
+| ChartGeorgian-Regular.ttf | traced from an image of a handwritten Mkhedruli chart with stroke-order arrows (33 letters) and a Nuskhuri stroke-order chart (38 letters, U+2D00..2D25) | provenance and licence of the image not known |
 | ChartArmenian-Regular.ttf | traced from an image of a handwritten Armenian alphabet (38 capital/small pairs) carrying an Adobe Stock watermark | stock image; licence not known |
 | ChartTibetan-Regular.ttf | traced from an image of a Tibetan cursive chart (30 consonants, vowel signs i u e o) | provenance and licence of the image not known |
 
