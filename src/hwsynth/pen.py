@@ -156,8 +156,8 @@ def render(strokes, pen, p, dpi, rng, shape=None, origin=None, cfg=RenderCfg()):
         Q = ((q - (x0, y0)) * ss * 16).astype(np.int32)
         R = (r * 16).astype(np.int32)
         D = (d * 255).astype(np.int32)
-        for i in range(len(q)):
-            cv2.circle(P, (int(Q[i, 0]), int(Q[i, 1])), int(R[i]), int(D[i]), -1, cv2.LINE_AA, 4)
+        for (qx, qy), r_, d_ in zip(Q.tolist(), R.tolist(), D.tolist()):
+            cv2.circle(P, (qx, qy), r_, d_, -1, cv2.LINE_AA, 4)
         P = cv2.resize(P, (x1 - x0, y1 - y0), interpolation=cv2.INTER_AREA).astype(np.float32) / 255
         P = P[ya - y0 : yb - y0, xa - x0 : xb - x0]
         c = C[ya:yb, xa:xb]
@@ -167,11 +167,11 @@ def render(strokes, pen, p, dpi, rng, shape=None, origin=None, cfg=RenderCfg()):
 
 
 def _dense(q, step):
-    d = np.r_[0, np.cumsum(np.hypot(*np.diff(q, axis=0).T))]
+    d = np.concatenate(([0.0], np.cumsum(np.hypot(*np.diff(q, axis=0).T))))
     if d[-1] < step:
         return q
     s = np.linspace(0, d[-1], int(d[-1] / step) + 1)
-    return np.c_[np.interp(s, d, q[:, 0]), np.interp(s, d, q[:, 1])]
+    return np.stack((np.interp(s, d, q[:, 0]), np.interp(s, d, q[:, 1])), axis=1)
 
 
 def _texture(C, t, k, rng):

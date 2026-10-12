@@ -234,7 +234,7 @@ class Writer:
         f = Field(r, amp * 0.03, r.uniform(0.35, 0.7))
         sx, sy, sh = 1 + r.normal(0, 0.05 * amp), 1 + r.normal(0, 0.04 * amp), r.normal(0, 0.04 * amp)
         c = s.mean(0)
-        return f(c + ((s - c) * (sx, sy)) + np.c_[-(s[:, 1] - c[1]) * sh, np.zeros(len(s))]) if len(s) else s
+        return f(c + ((s - c) * (sx, sy)) + np.column_stack((-(s[:, 1] - c[1]) * sh, np.zeros(len(s))))) if len(s) else s
 
     def _ends(self, s, dot):
         """Stroke ends overshoot or stop short of where they meet (em): no two strokes join exactly."""
@@ -276,7 +276,7 @@ class Writer:
         fz = 1 - 0.35 * p["flat"]
         y = s[:, 1]
         y2 = np.where(y < -zone, -zone * fz + (y + zone) * p["asc"], np.where(y > 0, y * p["desc"], y * fz))
-        return np.c_[s[:, 0], y2]
+        return np.column_stack((s[:, 0], y2))
 
     def _shape(self, s, dot):
         p, rng = self.p, self.rng
@@ -474,7 +474,7 @@ class Writer:
             s.p = warp(s.p)
             if len(s.p) > 3 and p["tremor"] > 0.05:
                 n = len(s.p)
-                s.p = s.p + np.c_[noise1d(rng, n, 1.2, 1), noise1d(rng, n, 1.2, 1)] * p["tremor"] * xh * 0.012
+                s.p = s.p + np.column_stack((noise1d(rng, n, 1.2, 1), noise1d(rng, n, 1.2, 1))) * p["tremor"] * xh * 0.012
 
     def motion(self, scr):
         """(overlap, mu, sigma) of the writer's sub-movements in a script: speed sets fluency and tempo, tremor and

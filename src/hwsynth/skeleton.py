@@ -19,11 +19,11 @@ def resample(p, step):
     p = np.asarray(p, float)
     if len(p) < 2:
         return np.vstack([p, p])
-    d = np.r_[0, np.cumsum(np.hypot(*np.diff(p, axis=0).T))]
+    d = np.concatenate(([0.0], np.cumsum(np.hypot(*np.diff(p, axis=0).T))))
     if d[-1] < step:
         return p[[0, -1]]
     s = np.linspace(0, d[-1], int(d[-1] / step) + 1)
-    return np.c_[np.interp(s, d, p[:, 0]), np.interp(s, d, p[:, 1])]
+    return np.stack((np.interp(s, d, p[:, 0]), np.interp(s, d, p[:, 1])), axis=1)
 
 
 def smooth(p, sigma):
@@ -36,7 +36,7 @@ def smooth(p, sigma):
     k = np.exp(-0.5 * (np.arange(-r, r + 1) / sigma) ** 2)
     k /= k.sum()
     q = np.pad(p[:-1] if closed else p, ((r, r), (0, 0)), mode="wrap" if closed else "edge")
-    o = np.c_[np.convolve(q[:, 0], k, "valid"), np.convolve(q[:, 1], k, "valid")]
+    o = np.column_stack((np.convolve(q[:, 0], k, "valid"), np.convolve(q[:, 1], k, "valid")))
     if closed:
         return np.vstack([o, o[:1]])
     o[0], o[-1] = p[0], p[-1]

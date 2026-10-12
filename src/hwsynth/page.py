@@ -62,9 +62,9 @@ def compose(ink, rgb, bg):
     return bg * (1 - ink[..., None] * (1 - np.asarray(rgb)[None, None]))
 
 
-def write(text, writer, width_mm=150.0, dpi=150, ruled=None, margin=6.0, scan=False):
+def write(text, writer, width_mm=150.0, dpi=150, ruled=None, margin=6.0, scan=False, image=True):
     """Sample of text written by writer on paper; ruled: True, False or None (by chance, 40 %); scan: scanned-document
-    look (scan.py): True, False or None (by chance, ScanCfg.p)."""
+    look (scan.py): True, False or None (by chance, ScanCfg.p); image=False skips the paper (image is None)."""
     rng = writer.rng
     if ruled is None:
         ruled = {"blank": False, "ruled": True}.get(writer.paper, rng.random() < 0.4)
@@ -78,13 +78,14 @@ def write(text, writer, width_mm=150.0, dpi=150, ruled=None, margin=6.0, scan=Fa
     ink, _ = render(lay.strokes, writer.pen, writer.p, dpi, rng, shape, origin)
     if writer.left:
         ink = smudge(ink, writer.pen, dpi, rng)
-    img = scanned(ink, writer.pen.ink, paper(shape, rng, rules, dpi, first), rng, dpi, scan)
+    img = scanned(ink, writer.pen.ink, paper(shape, rng, rules, dpi, first), rng, dpi, scan) if image else None
     words = [
         (w.text, tuple(int(round(v)) for v in ((np.array(w.box) - np.r_[origin, origin]) * k)), w.struck)
         for w in lay.words
         if w.box
     ]
-    return Sample((np.clip(img, 0, 1) * 255).astype(np.uint8), ink, words, dict(lay.meta, ruled=bool(ruled), dpi=dpi))
+    img = None if img is None else (np.clip(img, 0, 1) * 255).astype(np.uint8)
+    return Sample(img, ink, words, dict(lay.meta, ruled=bool(ruled), dpi=dpi))
 
 
 def scanned(ink, rgb, bg, rng, dpi, scan):

@@ -40,25 +40,27 @@ def synthesise(p, rng, overlap, mu, sigma, tol, step, cfg=MotionCfg()):
     dur = np.exp(mu + 3 * sigma)
     mus = mu + rng.normal(0, cfg.mu_sd, k)
     sigs = np.clip(sigma + rng.normal(0, cfg.sigma_sd, k), 0.12, 0.6)
-    t0 = np.r_[
-        0, np.cumsum(np.clip(2 * overlap * peak * (1 + rng.normal(0, cfg.interval_sd, k - 1)), 0.1 * peak, None))
-    ]
+    t0 = np.concatenate((
+        [0.0], np.cumsum(np.clip(2 * overlap * peak * (1 + rng.normal(0, cfg.interval_sd, k - 1)), 0.1 * peak, None))
+    ))
     t = np.linspace(0, t0[-1] + 1.5 * dur, max(cfg.samples, cfg.per_component * k))
     dt = t[1] - t[0]
-    vel = np.zeros((len(t), 2))
-    for j in range(k):  # each impulse on its own window
-        a = int(t0[j] / dt)
-        b = min(int((t0[j] + np.exp(mus[j] + 4 * sigs[j])) / dt) + 2, len(t))
-        lam = lognormal(t[a:b], t0[j], mus[j], sigs[j])
-        vel[a:b] += np.outer(lam / (lam.sum() * dt + 1e-12), D[j])  # integrates to the segment D[j]
+    a = (t0 / dt).astype(int)
+    b = np.minimum(((t0 + np.exp(mus + 4 * sigs)) / dt).astype(int) + 2, len(t))
+    n = np.maximum(b - a, 0)  # each impulse on its own window, all windows flattened
+    j = np.repeat(np.arange(k), n)
+    ti = a[j] + np.arange(n.sum()) - np.repeat(np.cumsum(n) - n, n)
+    lam = lognormal(t[ti], t0[j], mus[j], sigs[j])
+    lam /= (np.bincount(j, lam, k) * dt + 1e-12)[j]  # integrates to the segment D[j]
+    vel = np.stack([np.bincount(ti, lam * D[j, c], len(t)) for c in (0, 1)], axis=1)
     pos = tg[0] + np.cumsum(vel, 0) * dt
     pos += (tg[-1] - pos[-1]) * np.linspace(0, 1, len(pos))[:, None]  # numerical drift to the end target
     speed = np.hypot(*vel.T)
-    d = np.r_[0, np.cumsum(np.hypot(*np.diff(pos, axis=0).T))]
+    d = np.concatenate(([0.0], np.cumsum(np.hypot(*np.diff(pos, axis=0).T))))
     if d[-1] < step:
         return p, np.ones(len(p))
     s = np.linspace(0, d[-1], int(d[-1] / step) + 1)
-    keep = np.r_[True, np.diff(d) > 0]
+    keep = np.concatenate(([True], np.diff(d) > 0))
     out = np.c_[np.interp(s, d[keep], pos[keep, 0]), np.interp(s, d[keep], pos[keep, 1])]
     v = np.interp(s, d[keep], speed[keep])
     return out, v / (v.max() + 1e-12)
@@ -87,10 +89,9 @@ def min_jerk(p, lam):
         return p
     c = np.array([-1.0, 3.0, -3.0, 1.0])
     diag = [np.zeros(n) for _ in range(4)]  # D3^T D3 bands 0..3
-    for r in range(n - 3):
-        for a in range(4):
-            for b in range(a, 4):
-                diag[b - a][r + a] += c[a] * c[b]
+    for a in range(4):
+        for b in range(a, 4):
+            diag[b - a][a : a + n - 3] += c[a] * c[b]
     w = np.full(n, lam)
     w[[0, 1, -2, -1]] = 1e6  # end points held
     ab = np.zeros((4, n))
