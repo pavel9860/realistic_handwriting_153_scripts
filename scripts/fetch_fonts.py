@@ -6,6 +6,7 @@ python scripts/fetch_fonts.py [--workers 8]
 
 import argparse
 import json
+import shutil
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -19,6 +20,9 @@ MANIFEST = Path(__file__).resolve().parents[1] / "src" / "hwsynth" / "data" / "f
 def fetch(entry, out):
     dst = out / entry["file"]
     if dst.exists() and dst.stat().st_size:
+        return None
+    if "local" in entry:
+        shutil.copy(MANIFEST.parent / entry["local"], dst)
         return None
     tmp = dst.with_suffix(".part")
     try:

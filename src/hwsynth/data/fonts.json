@@ -495,6 +495,15 @@
    "own": [
     "Khmer"
    ]
+  },
+  {
+   "file": "SinhalaHandwriteConverted-Regular.ttf",
+   "local": "fonts_local/SinhalaHandwriteConverted-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Sinhala"
+   ]
   }
  ]
 }
