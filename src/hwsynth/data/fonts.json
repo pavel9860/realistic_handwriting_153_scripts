@@ -468,6 +468,33 @@
    "prefer": {
     "Hebrew": 0.8
    }
+  },
+  {
+   "file": "Chilanka-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/chilanka/Chilanka-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Malayalam"
+   ]
+  },
+  {
+   "file": "Fasthand-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/fasthand/Fasthand-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Khmer"
+   ]
+  },
+  {
+   "file": "Freehand-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/freehand/Freehand-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Khmer"
+   ]
   }
  ],
  "fallback": [

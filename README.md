@@ -20,7 +20,7 @@ It runs on CPU, needs no trained network, and uses no language model.
 ```bash
 pip install -e .                    # core
 pip install -e ".[evolve,dev]"      # search, metrics, tests
-python scripts/fetch_fonts.py       # 59 handwriting fonts + 158 Noto Sans fallbacks (~190 MB, OFL/Apache)
+python scripts/fetch_fonts.py       # 62 handwriting fonts + 158 Noto Sans fallbacks (~190 MB, OFL/Apache)
 hwsynth coverage                    # scripts that can be written
 ```
 
