@@ -9,3 +9,4 @@
 
 The chart fonts are made by `scripts/chart_to_font.py`. They hold the letters of the charts only: no digits,
 punctuation or conjuncts; characters without a glyph are skipped when writing.
+| ChartLao-Regular.ttf | consonants traced from a photo of handwritten Lao letters; vowel signs cut from a handwritten syllable chart on ກ (vowels in red) | provenance and licence of the images not known |

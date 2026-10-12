@@ -531,6 +531,15 @@
    "own": [
     "Tibetan"
    ]
+  },
+  {
+   "file": "ChartLao-Regular.ttf",
+   "local": "fonts_local/ChartLao-Regular.ttf",
+   "license": "see fonts_local/README.md",
+   "class": "cursive",
+   "own": [
+    "Lao"
+   ]
   }
  ]
 }

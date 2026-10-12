@@ -4,6 +4,11 @@ TrueType font that hwsynth traces like any handwriting font.
 python scripts/chart_to_font.py georgian IMAGE OUT.ttf    33 Mkhedruli letters, 3 rows of 11 (annotations in blue)
 python scripts/chart_to_font.py armenian IMAGE OUT.ttf    38 capital/small pairs, 5 columns, 39 cells
 python scripts/chart_to_font.py tibetan  IMAGE OUT.ttf    30 consonants in the upper bands, 5 vowel cells
+python scripts/chart_to_font.py lao CONSONANTS SYLLABLES OUT.ttf
+        27 consonants (3 rows of 8, 9, 10) and the vowel signs cut from a chart of syllables on ກ (vowels in red)
+python scripts/chart_to_font.py myanmar CONSONANTS VOWELS MEDIALS SYMBOLS OUT.ttf
+        33 consonants (boxed grid, 5 columns); vowel signs, medials, tones and numerals from typeset charts with
+        dotted-circle placeholders (Omniglot Myanmar page); typeset forms, not handwriting
 
 The Armenian chart has one extra cell (index 36, the ու note) that is skipped; its letter order is the standard one.
 Charts are inputs only: they are not part of the repository.
@@ -168,7 +173,194 @@ def tibetan(img, out):
     write(out, ents, "ChartTibetan")
 
 
+LAO = "ກຂຄງຈສຊຍດຕຖທນບປຜຝພຟມຢຣລວຫອຮ"
+# (row, column) of the syllable chart -> (code point, kind): kind r right, l left (both take an advance), a above or
+# below the consonant (zero advance, drawn over it)
+LAO_MARKS = {
+    (0, 0): (0x0EB0, "r"), (0, 1): (0x0EB1, "a"), (0, 2): (0x0EB4, "a"), (0, 3): (0x0EB6, "a"), (0, 4): (0x0EB8, "a"),
+    (1, 2): (0x0EBB, "a"), (1, 6): (0x0EB2, "r"), (1, 7): (0x0EB5, "a"), (2, 0): (0x0EB7, "a"), (2, 1): (0x0EB9, "a"),
+    (2, 2): (0x0EC0, "l"), (2, 3): (0x0EC1, "l"), (2, 4): (0x0EC2, "l"), (2, 5): (0x0ECD, "a"),
+    (3, 5): (0x0EC4, "l"), (3, 6): (0x0EC3, "l"), (4, 1): (0x0EBD, "r"), (4, 6): (0x0EB3, "ar"), (4, 7): (0x0ECC, "a"),
+}
+SYLLABLE_ROWS = [(0, 45), (110, 185), (245, 320), (375, 455), (505, 590)]
+
+
+def shifted(g, dx):
+    """The TT glyph moved by dx font units."""
+    if len(g.coordinates):
+        for k in range(len(g.coordinates)):
+            g.coordinates[k] = (g.coordinates[k][0] + dx, g.coordinates[k][1])
+        g.recalcBounds(None)
+    return g
+
+
+def lao(consonants, syllables, out):
+    g = cv2.cvtColor(consonants, cv2.COLOR_BGR2GRAY)
+    d = ((cv2.GaussianBlur(g, (0, 0), 25).astype(int) - g.astype(int)) > 35).astype(np.uint8)
+    d = cv2.morphologyEx(d, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
+    lab, st, cen, ids = comps_of(d, 30)
+    ids = [i for i in ids if st[i][1] > 100]
+    assert len(ids) == 27, len(ids)
+    row = kmeans1([cen[i][1] for i in ids], 3)
+    key = sorted(zip(row, [st[i][0] for i in ids], range(len(ids))))
+    order = [ids[k] for _, _, k in key]
+    rows = [row[k] for _, _, k in key]
+    assert [rows.count(k) for k in range(3)] == [8, 9, 10]
+    scale = XHEIGHT / np.median([st[i][3] for i in order])
+    rowbase = [np.median([st[i][1] + st[i][3] for i, r in zip(order, rows) if r == k]) for k in range(3)]
+    ents = {}
+    for ch, i, r in zip(LAO, order, rows):
+        ents[ord(ch)] = (glyph((lab == i).astype(np.uint8), st[i][0], rowbase[r], scale), st[i][2] * scale + 80)
+    rr, gg, bb = syllables[..., 2].astype(int), syllables[..., 1].astype(int), syllables[..., 0].astype(int)
+    red = ((rr - np.maximum(gg, bb)) > 60).astype(np.uint8)
+    blk = (rr < 140).astype(np.uint8)
+    bl, bst, bcen, bids = comps_of(blk, 40)
+    rl, rst, rcen, rids = comps_of(red, 8)
+    rids = [i for i in rids if not (rst[i][3] > 30 and rst[i][2] <= 3)]
+    base = {}
+    for r, (y0, y1) in enumerate(SYLLABLE_ROWS):
+        bs = sorted((i for i in bids if y0 <= bcen[i][1] <= y1), key=lambda i: bcen[i][0])
+        assert len(bs) == 8, (r, len(bs))
+        base.update({(r, c): i for c, i in enumerate(bs)})
+    k16 = scale * np.median([st[i][3] for i in order[:8]]) / np.median([bst[i][3] for i in base.values()])
+    adv_ref = bst[base[(0, 0)]][2] * k16 + 80
+
+    def parts(r, c):
+        cx = bcen[base[(r, c)]][0]
+        y0, y1 = SYLLABLE_ROWS[r]
+        cy = bcen[base[(r, c)]][1]
+        return [i for i in rids if abs(rcen[i][1] - cy) < 35 and abs(rcen[i][0] - cx) < 45
+                and abs(rcen[i][0] - cx) == min(abs(rcen[i][0] - bcen[base[(r, k)]][0]) for k in range(8))]
+
+    for (r, c), (cp, kind) in LAO_MARKS.items():
+        near = parts(r, c)
+        if not near:
+            continue
+        bx0, by0, bw, bh = bst[base[(r, c)]][:4]
+        m = np.isin(rl, near).astype(np.uint8)
+        x0, x1 = min(rst[i][0] for i in near), max(rst[i][0] + rst[i][2] for i in near)
+        if "a" in kind:
+            ents[cp] = (shifted(glyph(m, bx0, by0 + bh, k16), -adv_ref), 0)
+        else:
+            ents[cp] = (glyph(m, x0, by0 + bh, k16), (x1 - x0) * k16 + 80)
+    write(out, [(cp, g_, a_) for cp, (g_, a_) in sorted(ents.items())], "ChartLao")
+
+
+# components of the typeset charts, numbered as scripts' dark components (gray < 100, area >= 12) sorted by
+# (round(cy / 40), cx); circles are the dotted placeholders of the base letter
+MYANMAR_VOWELS = {0x102D: [50], 0x102E: [51], 0x102F: [59], 0x1030: [60], 0x1031: [54], 0x102C: [118],
+                   0x102B: [121], 0x1032: [116]}
+MYANMAR_SYMBOLS = {0x1037: [21], 0x1038: [15, 16], 0x103A: [12], 0x1036: [14]}
+MYANMAR_DIGITS = {0x1040: [113], 0x1041: [114], 0x1042: [115], 0x1043: [116], 0x1044: [117], 0x1045: [118],
+                  0x1046: [213], 0x1047: [214], 0x1048: [215], 0x1049: [216]}
+MYANMAR_ORDER = "ကခဂဃငစဆဇဈညဋဌဍဎဏတထဒဓနပဖဗဘမယရလဝသဟဠအ"
+
+
+def numbered(img, thresh=100, min_area=12):
+    g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    n, lab, st, cen = cv2.connectedComponentsWithStats((g < thresh).astype(np.uint8), connectivity=8)
+    big = sorted((i for i in range(1, n) if st[i][4] >= min_area), key=lambda i: (round(cen[i][1] / 40), cen[i][0]))
+    return g, lab, st, cen, big
+
+
+def circles(g, dark_lab):
+    """Bounding boxes of the dotted placeholder circles: gray dots (small components) merged into rings; dark_lab
+    marks the pixels of the real (large) components."""
+    light = (g < 215).astype(np.uint8)
+    light[dark_lab > 0] = 0
+    ring = cv2.dilate(light, np.ones((5, 5), np.uint8))
+    n, lab, st, cen = cv2.connectedComponentsWithStats(ring, connectivity=8)
+    out = []
+    for i in range(1, n):
+        x, y, w, h, a = st[i]
+        if 22 <= w <= 40 and 22 <= h <= 40 and 0.75 < w / h < 1.33:
+            inner = dark_lab[y + h // 4:y + 3 * h // 4, x + w // 4:x + 3 * w // 4]
+            if not inner.any():
+                out.append((x + 2, y + 2, x + w - 2, y + h - 2))
+    return out
+
+
+def myanmar(c5, c12, c13, c15, out):
+    g = cv2.cvtColor(c5, cv2.COLOR_BGR2GRAY)
+    d = (g < 110).astype(np.uint8)
+    hor = cv2.morphologyEx(d, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (60, 1)))
+    ver = cv2.morphologyEx(d, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (1, 60)))
+    lab, st, cen, ids = comps_of(d & ~cv2.dilate(hor | ver, np.ones((3, 3), np.uint8)), 12)
+    assert len(ids) == 33, len(ids)
+    order = sorted(ids, key=lambda i: (round(cen[i][1] / 73), cen[i][0]))
+    scale = XHEIGHT / np.median([st[i][3] for i in order])
+    height = np.median([st[i][3] for i in order])
+    ents = {}
+    for ch, i in zip(MYANMAR_ORDER, order):
+        # letters share one top line (x-height); retroflex letters reach below the baseline
+        ents[ord(ch)] = (glyph((lab == i).astype(np.uint8), st[i][0], st[i][1] + height, scale), st[i][2] * scale + 80)
+    ma = order[MYANMAR_ORDER.index("မ")]
+    ma_w = st[ma][2] * scale
+    adv_ref = float(np.percentile([a for _, a in ents.values()], 85))
+    for cp, (g_, a_) in list(ents.items()):
+        ents[cp] = (g_, adv_ref)
+
+    def from_circles(img, spec, k_from="circle"):
+        gg, lb, s2, c2, big = numbered(img)
+        circ = circles(gg, np.isin(lb, big))
+        assert circ, "no placeholder circles"
+        dia = np.median([x1 - x0 for x0, _, x1, _ in circ])
+        k = ma_w / dia
+        for cp, idx in spec.items():
+            comp = [big[j] for j in idx]
+            m = np.isin(lb, comp).astype(np.uint8)
+            cx = np.mean([c2[i][0] for i in comp]); cy = np.mean([c2[i][1] for i in comp])
+            cx0, cy0, cx1, cy1 = min(circ, key=lambda c: (c[0] + c[2]) / 2 - cx if False else abs((c[0] + c[2]) / 2 - cx) + abs((c[1] + c[3]) / 2 - cy))
+            bx = min(s2[i][0] for i in comp)
+            right = bx >= cx1 - 2
+            x0 = min(s2[i][0] for i in comp)
+            x1 = max(s2[i][0] + s2[i][2] for i in comp)
+            if right:
+                ents[cp] = (glyph(m, x0, cy1, k), (x1 - x0) * k + 80)
+            else:
+                ents[cp] = (shifted(glyph(m, cx0, cy1, k), -adv_ref), 0)
+
+    gg, lb, s3, c3, big3 = numbered(c13)
+    ma13 = s3[big3[135]]
+    k13 = ma_w / ma13[2]
+    tpl = (lb[ma13[1]:ma13[1] + ma13[3], ma13[0]:ma13[0] + ma13[2]] == big3[135]).astype(np.uint8)
+    for cp, idx in ((0x103D, [136]), (0x103E, [140])):
+        comp = [big3[j] for j in idx]
+        m = np.isin(lb, comp).astype(np.uint8)
+        host = s3[big3[135 if cp == 0x103D else 139]]
+        ents[cp] = (shifted(glyph(m, host[0], host[1] + host[3], k13), -adv_ref), 0)
+    for cp, cell in ((0x103B, 38), (0x103C, 42)):
+        cs = s3[big3[cell]]
+        sub = np.zeros_like(lb, np.uint8)
+        sub[cs[1]:cs[1] + cs[3], cs[0]:cs[0] + cs[2]] = (lb[cs[1]:cs[1] + cs[3], cs[0]:cs[0] + cs[2]] == big3[cell])
+        pad = np.pad(sub[cs[1]:cs[1] + cs[3], cs[0]:cs[0] + cs[2]], 20)
+        res = cv2.matchTemplate(pad.astype(np.float32), tpl.astype(np.float32), cv2.TM_CCORR)
+        _, _, _, (mx, my) = cv2.minMaxLoc(res)
+        host = np.zeros_like(pad)
+        host[my:my + ma13[3], mx:mx + ma13[2]] = tpl
+        mark = (pad & ~cv2.dilate(host, np.ones((5, 5), np.uint8)))[20:-20, 20:-20]
+        full = np.zeros_like(lb, np.uint8)
+        full[cs[1]:cs[1] + cs[3], cs[0]:cs[0] + cs[2]] = mark
+        bx, by = cs[0] + mx - 20, cs[1] + my - 20
+        ents[cp] = (shifted(glyph(full, bx, by + ma13[3], k13), -adv_ref), 0)
+    from_circles(c12, MYANMAR_VOWELS)
+    from_circles(c15, MYANMAR_SYMBOLS)
+    gg, lb, s2, c2, big = numbered(c15)
+    for cp, idx in MYANMAR_DIGITS.items():
+        m = np.isin(lb, [big[j] for j in idx]).astype(np.uint8)
+        x0, w = s2[big[idx[0]]][0], s2[big[idx[0]]][2]
+        zero = s2[big[113]]
+        k = XHEIGHT * 0.9 / zero[3]
+        ents[cp] = (glyph(m, x0, zero[1] + zero[3], k), w * k + 80)
+    write(out, [(cp, g_, a_) for cp, (g_, a_) in sorted(ents.items())], "ChartMyanmar")
+
+
 if __name__ == "__main__":
-    kind, image, out = sys.argv[1:4]
-    {"georgian": georgian, "armenian": armenian, "tibetan": tibetan}[kind](load(image), out)
-    print("written", out)
+    kind = sys.argv[1]
+    if kind == "lao":
+        lao(load(sys.argv[2]), load(sys.argv[3]), sys.argv[4])
+    elif kind == "myanmar":
+        myanmar(*[load(a) for a in sys.argv[2:6]], sys.argv[6])
+    else:
+        {"georgian": georgian, "armenian": armenian, "tibetan": tibetan}[kind](load(sys.argv[2]), sys.argv[3])
+    print("written", sys.argv[-1])
