@@ -13,3 +13,8 @@ punctuation or conjuncts; characters without a glyph are skipped when writing.
 | ChartMyanmar-Regular.ttf | 34 letters from the Mrauk-U column of an Arakanese script chart (hand-drawn historical forms; mapped by Brahmic order and checked on a labelled sheet); vowel signs, medials, tone marks and numerals from typeset Myanmar charts (typeset forms) | provenance and licence of the images not known |
 | ChartGurmukhi-Regular.ttf | 35 letters traced from a handwritten manuscript alphabet page (Panjab Digital Library) | the library's terms apply; not checked |
 | ChartGeez-Regular.ttf | 231 syllables (33 consonants x 7 orders) traced from a chart | provenance and licence of the image not known |
+
+The Armenian ligature և (U+0587) is composed of the traced ե and ւ; the Armenian full stop and comma, the Tibetan tsheg and shad,
+and the Ethiopic word space, full stop and comma are drawn as dots and bars by `scripts/chart_to_font.py` (not traced).
+Latin digits and ASCII punctuation come from the Latin handwriting fonts (a unit without a glyph falls back to any handwriting
+font that has it).

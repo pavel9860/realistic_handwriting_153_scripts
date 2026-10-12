@@ -78,6 +78,53 @@ def glyph(mask, x_ref, baseline, scale):
     return pen.glyph()
 
 
+def disc(cx, cy, r, n=14):
+    return [(cx + r * np.cos(2 * np.pi * k / n), cy + r * np.sin(2 * np.pi * k / n)) for k in range(n)]
+
+
+def poly_glyph(polys):
+    """TT glyph of filled polygons (font units, y up)."""
+    pen = TTGlyphPen(None)
+    for pts in polys:
+        pts = [(round(x), round(y)) for x, y in pts]
+        pen.moveTo(pts[0])
+        for q in pts[1:]:
+            pen.lineTo(q)
+        pen.closePath()
+    return pen.glyph()
+
+
+def bar(x, y0, y1, w=64, lean=0.0):
+    return [(x - w / 2, y0), (x + w / 2, y0), (x + w / 2 + lean, y1), (x - w / 2 + lean, y1)]
+
+
+def punctuation(kind):
+    """Simple marks drawn as dots and bars: [(code point, glyph, advance)]."""
+    r = 46
+    if kind == "armenian":
+        return [(0x589, poly_glyph([disc(70, 60, r), disc(70, 420, r)]), 200),
+                (0x55D, poly_glyph([bar(80, 430, 640, lean=-60)]), 200)]
+    if kind == "tibetan":
+        return [(0x0F0B, poly_glyph([disc(60, 260, r)]), 150),
+                (0x0F0D, poly_glyph([bar(70, -40, 560)]), 200),
+                (0x0F0E, poly_glyph([bar(60, -40, 560), bar(190, -40, 560)]), 320)]
+    if kind == "geez":
+        return [(0x1361, poly_glyph([disc(70, 90, r), disc(70, 420, r)]), 200),
+                (0x1362, poly_glyph([disc(70, 90, r), disc(70, 420, r), disc(250, 90, r), disc(250, 420, r)]), 380),
+                (0x1363, poly_glyph([disc(70, 420, r), bar(70, 40, 330, lean=-50)]), 200),
+                (0x1364, poly_glyph([disc(70, 420, r), disc(70, 160, r), bar(70, -90, 80, lean=-40)]), 200)]
+    return []
+
+
+def ligature(first, second, overlap=70):
+    """TT glyph of two glyphs side by side: (glyph, advance); first/second are (glyph, advance)."""
+    from fontTools.pens.transformPen import TransformPen
+    pen = TTGlyphPen(None)
+    first[0].draw(pen, None)
+    second[0].draw(TransformPen(pen, (1, 0, 0, 1, first[1] - overlap, 0)), None)
+    return pen.glyph(), first[1] + second[1] - overlap
+
+
 def write(path, entries, name):
     """entries: [(codepoint, glyph, advance)]."""
     glyphs, cmap, met, order = {".notdef": TTGlyphPen(None).glyph()}, {}, {".notdef": (500, 0)}, [".notdef"]
@@ -159,6 +206,9 @@ def armenian(img, out):
             x0 = min(st[i][0] for i in grp)
             x1 = max(st[i][0] + st[i][2] for i in grp)
             ents.append((ord(ch), glyph(m, x0, base, scale), (x1 - x0) * scale + 80))
+    have = {cp: (g_, adv) for cp, g_, adv in ents}
+    lig, adv = ligature(have[0x565], have[0x582])
+    ents += [(0x587, lig, adv)] + punctuation("armenian")
     write(out, ents, "ChartArmenian")
 
 
@@ -191,6 +241,7 @@ def tibetan(img, out):
         keep = np.isin(l2, [i for i in range(1, n) if s2[i][4] >= 20]).astype(np.uint8)
         if keep.any():
             ents.append((cp, glyph(keep, mx - 20 + x * 0 if False else mx - 20, my - 20 + bh, scale), 0))
+    ents += [(cp, g_, adv) for cp, g_, adv in punctuation("tibetan")]
     write(out, ents, "ChartTibetan")
 
 
@@ -465,6 +516,7 @@ def geez(img, out):
             x0 = min(st[i][0] for i in v)
             x1 = max(st[i][0] + st[i][2] for i in v)
             ents.append((GEEZ_BASES[r] + c, glyph(m, x0, rowbase[r], scale), (x1 - x0) * scale + 80))
+    ents += punctuation("geez")
     write(out, ents, "ChartGeez")
 
 
