@@ -6,9 +6,11 @@ python scripts/chart_to_font.py armenian IMAGE OUT.ttf    38 capital/small pairs
 python scripts/chart_to_font.py tibetan  IMAGE OUT.ttf    30 consonants in the upper bands, 5 vowel cells
 python scripts/chart_to_font.py lao CONSONANTS SYLLABLES OUT.ttf
         27 consonants (3 rows of 8, 9, 10) and the vowel signs cut from a chart of syllables on ກ (vowels in red)
-python scripts/chart_to_font.py myanmar CONSONANTS VOWELS MEDIALS SYMBOLS OUT.ttf
-        33 consonants (boxed grid, 5 columns); vowel signs, medials, tones and numerals from typeset charts with
-        dotted-circle placeholders (Omniglot Myanmar page); typeset forms, not handwriting
+python scripts/chart_to_font.py gurmukhi IMAGE OUT.ttf   35 letters of a handwritten manuscript page (7 rows of 5)
+python scripts/chart_to_font.py geez IMAGE OUT.ttf       33 consonant rows of 7 orders (231 syllables) from a chart
+python scripts/chart_to_font.py myanmar ARAKANESE VOWELS MEDIALS SYMBOLS OUT.ttf
+        34 letters from the Mrauk-U column of the Arakanese chart (hand-drawn forms); vowel signs, medials, tones
+        and numerals from typeset charts with dotted-circle placeholders (typeset forms, not handwriting)
 
 The Armenian chart has one extra cell (index 36, the ու note) that is skipped; its letter order is the standard one.
 Charts are inputs only: they are not part of the repository.
@@ -267,7 +269,7 @@ def circles(g, dark_lab):
     """Bounding boxes of the dotted placeholder circles: gray dots (small components) merged into rings; dark_lab
     marks the pixels of the real (large) components."""
     light = (g < 215).astype(np.uint8)
-    light[dark_lab > 0] = 0
+    light[cv2.dilate((dark_lab > 0).astype(np.uint8), np.ones((3, 3), np.uint8), iterations=3) > 0] = 0
     ring = cv2.dilate(light, np.ones((5, 5), np.uint8))
     n, lab, st, cen = cv2.connectedComponentsWithStats(ring, connectivity=8)
     out = []
@@ -280,26 +282,44 @@ def circles(g, dark_lab):
     return out
 
 
-def myanmar(c5, c12, c13, c15, out):
-    g = cv2.cvtColor(c5, cv2.COLOR_BGR2GRAY)
-    d = (g < 110).astype(np.uint8)
-    hor = cv2.morphologyEx(d, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (60, 1)))
-    ver = cv2.morphologyEx(d, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (1, 60)))
-    lab, st, cen, ids = comps_of(d & ~cv2.dilate(hor | ver, np.ones((3, 3), np.uint8)), 12)
-    assert len(ids) == 33, len(ids)
-    order = sorted(ids, key=lambda i: (round(cen[i][1] / 73), cen[i][0]))
-    scale = XHEIGHT / np.median([st[i][3] for i in order])
-    height = np.median([st[i][3] for i in order])
-    ents = {}
-    for ch, i in zip(MYANMAR_ORDER, order):
-        # letters share one top line (x-height); retroflex letters reach below the baseline
-        ents[ord(ch)] = (glyph((lab == i).astype(np.uint8), st[i][0], st[i][1] + height, scale), st[i][2] * scale + 80)
-    ma = order[MYANMAR_ORDER.index("မ")]
-    ma_w = st[ma][2] * scale
-    adv_ref = float(np.percentile([a for _, a in ents.values()], 85))
-    for cp, (g_, a_) in list(ents.items()):
-        ents[cp] = (g_, adv_ref)
+MYANMAR_ROWS = "ကခဂဃငစဆဇဈဉဋဌဍဎဏတထဒဓနပဖဗဘမယရလဝဿသဟဠအ"
 
+
+def mraukU(img):
+    """The 34 letters of the Mrauk-U column of the Arakanese chart (33 consonants in Brahmic order and the vowel a):
+    list of (row mask, band top, band bottom, left)."""
+    g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    d = ((cv2.GaussianBlur(g, (0, 0), 20).astype(int) - g.astype(int)) > 40).astype(np.uint8)
+    x0, x1, y0, y1 = 700, 790, 330, 1800
+    prof = d[y0:y1, x0:x1].sum(1)
+    bands, inside = [], False
+    for y, v in enumerate(prof):
+        if v > 0 and not inside:
+            top, inside = y, True
+        if v == 0 and inside:
+            bands.append((top + y0, y + y0))
+            inside = False
+    assert len(bands) == 34, len(bands)
+    out = []
+    for t, b in bands:
+        m = np.zeros_like(d)
+        m[t:b, x0:x1] = d[t:b, x0:x1]
+        xs = np.nonzero(m.any(0))[0]
+        out.append((m, t, b, int(xs.min())))
+    return out
+
+
+def myanmar(c17, c12, c13, c15, out):
+    letters_ = mraukU(c17)
+    scale = XHEIGHT / np.median([b - t for _, t, b, _ in letters_])
+    ents = {}
+    for ch, (m, t, b, left) in zip(MYANMAR_ROWS, letters_):
+        w = int(m.any(0).sum())
+        ents[ord(ch)] = (glyph(m, left, b, scale), None)
+    widths = {cp: np.ptp(np.nonzero(m.any(0))[0]) for (cp, _), (m, *_r) in zip(ents.items(), letters_)}
+    ma_w = widths[ord("မ")] * scale
+    adv_ref = float(np.percentile([w * scale for w in widths.values()], 85)) + 80
+    ents = {cp: (g_, adv_ref) for cp, (g_, _) in ents.items()}
     def from_circles(img, spec, k_from="circle"):
         gg, lb, s2, c2, big = numbered(img)
         circ = circles(gg, np.isin(lb, big))
@@ -312,7 +332,7 @@ def myanmar(c5, c12, c13, c15, out):
             cx = np.mean([c2[i][0] for i in comp]); cy = np.mean([c2[i][1] for i in comp])
             cx0, cy0, cx1, cy1 = min(circ, key=lambda c: (c[0] + c[2]) / 2 - cx if False else abs((c[0] + c[2]) / 2 - cx) + abs((c[1] + c[3]) / 2 - cy))
             bx = min(s2[i][0] for i in comp)
-            right = bx >= cx1 - 2
+            right = cp in (0x102C, 0x102B)
             x0 = min(s2[i][0] for i in comp)
             x1 = max(s2[i][0] + s2[i][2] for i in comp)
             if right:
@@ -355,6 +375,80 @@ def myanmar(c5, c12, c13, c15, out):
     write(out, [(cp, g_, a_) for cp, (g_, a_) in sorted(ents.items())], "ChartMyanmar")
 
 
+GURMUKHI = "ੳਅੲਸਹਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲਵੜ"
+
+
+def gurmukhi(img, out):
+    g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    d = ((cv2.GaussianBlur(g, (0, 0), 25).astype(int) - g.astype(int)) > 28).astype(np.uint8)
+    d[:740] = 0
+    d[:, :200] = 0
+    d[:, 1300:] = 0
+    d[1900:] = 0
+    lab, st, cen, ids = comps_of(d, 25)
+    row = kmeans1([cen[i][1] for i in ids], 7)
+    col = kmeans1([cen[i][0] for i in ids], 5)
+    cells = {}
+    for i, r, c in zip(ids, row, col):
+        cells.setdefault((r, c), []).append(i)
+    assert len(cells) == 35, len(cells)
+    keys = sorted(cells)
+    h = np.median([max(st[i][1] + st[i][3] for i in cells[k]) - min(st[i][1] for i in cells[k]) for k in keys])
+    scale = 700 / h
+    ents = []
+    for ch, k in zip(GURMUKHI, keys):
+        m = np.isin(lab, cells[k]).astype(np.uint8)
+        x0 = min(st[i][0] for i in cells[k])
+        x1 = max(st[i][0] + st[i][2] for i in cells[k])
+        top = min(st[i][1] for i in cells[k])
+        ents.append((ord(ch), glyph(m, x0, top + h, scale), (x1 - x0) * scale + 80))
+    write(out, ents, "ChartGurmukhi")
+
+
+GEEZ_BASES = [0x1200, 0x1208, 0x1210, 0x1218, 0x1220, 0x1228, 0x1230, 0x1238, 0x1240, 0x1260, 0x1270, 0x1278, 0x1280,
+              0x1290, 0x1298, 0x12A0, 0x12A8, 0x12B8, 0x12C8, 0x12D0, 0x12D8, 0x12E0, 0x12E8, 0x12F0, 0x1300, 0x1308,
+              0x1320, 0x1328, 0x1330, 0x1338, 0x1340, 0x1348, 0x1350]
+
+
+def geez(img, out):
+    g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    d = (g < 140).astype(np.uint8)
+    lab, st, cen, ids = comps_of(d, 12)
+    glyphs_ = [i for i in ids if st[i][3] >= 12 and st[i][2] >= 6 and st[i][4] >= 25]
+    ys = [cen[i][1] for i in glyphs_ if st[i][3] >= 17]
+    rows = kmeans1(ys, 33)
+    centers = [np.mean([y for y, r in zip(ys, rows) if r == k]) for k in range(33)]
+    xs = [cen[i][0] for i in glyphs_ if st[i][3] >= 17]
+    cols = kmeans1(xs, 7)
+    cx = [np.mean([x for x, c in zip(xs, cols) if c == k]) for k in range(7)]
+    cells = {}
+    for i in glyphs_:
+        r = int(np.argmin([abs(cen[i][1] - c) for c in centers]))
+        c = int(np.argmin([abs(cen[i][0] - x) for x in cx]))
+        if abs(cen[i][1] - centers[r]) < 18 and abs(cen[i][0] - cx[c]) < 22:
+            cells.setdefault((r, c), []).append(i)
+    for r in range(33):
+        for c in range(7):
+            if (r, c) not in cells:
+                near = [i for i in ids if abs(cen[i][1] - centers[r]) < 18 and abs(cen[i][0] - cx[c]) < 22]
+                if near:
+                    cells[(r, c)] = near
+    missing = [(r, c) for r in range(33) for c in range(7) if (r, c) not in cells]
+    assert not missing, missing[:10]
+    h = np.median([max(st[i][1] + st[i][3] for i in v) - min(st[i][1] for i in v) for v in cells.values()])
+    scale = 650 / h
+    rowbase = [np.median([max(st[i][1] + st[i][3] for i in cells[(r, c)]) for c in range(7)]) for r in range(33)]
+    ents = []
+    for r in range(33):
+        for c in range(7):
+            v = cells[(r, c)]
+            m = np.isin(lab, v).astype(np.uint8)
+            x0 = min(st[i][0] for i in v)
+            x1 = max(st[i][0] + st[i][2] for i in v)
+            ents.append((GEEZ_BASES[r] + c, glyph(m, x0, rowbase[r], scale), (x1 - x0) * scale + 80))
+    write(out, ents, "ChartGeez")
+
+
 if __name__ == "__main__":
     kind = sys.argv[1]
     if kind == "lao":
@@ -362,5 +456,6 @@ if __name__ == "__main__":
     elif kind == "myanmar":
         myanmar(*[load(a) for a in sys.argv[2:6]], sys.argv[6])
     else:
-        {"georgian": georgian, "armenian": armenian, "tibetan": tibetan}[kind](load(sys.argv[2]), sys.argv[3])
+        {"georgian": georgian, "armenian": armenian, "tibetan": tibetan, "gurmukhi": gurmukhi,
+         "geez": geez}[kind](load(sys.argv[2]), sys.argv[3])
     print("written", sys.argv[-1])

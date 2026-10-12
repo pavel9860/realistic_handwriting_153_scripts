@@ -10,3 +10,6 @@
 The chart fonts are made by `scripts/chart_to_font.py`. They hold the letters of the charts only: no digits,
 punctuation or conjuncts; characters without a glyph are skipped when writing.
 | ChartLao-Regular.ttf | consonants traced from a photo of handwritten Lao letters; vowel signs cut from a handwritten syllable chart on ກ (vowels in red) | provenance and licence of the images not known |
+| ChartMyanmar-Regular.ttf | 34 letters from the Mrauk-U column of an Arakanese script chart (hand-drawn historical forms; mapped by Brahmic order and checked on a labelled sheet); vowel signs, medials, tone marks and numerals from typeset Myanmar charts (typeset forms) | provenance and licence of the images not known |
+| ChartGurmukhi-Regular.ttf | 35 letters traced from a handwritten manuscript alphabet page (Panjab Digital Library) | the library's terms apply; not checked |
+| ChartGeez-Regular.ttf | 231 syllables (33 consonants x 7 orders) traced from a chart | provenance and licence of the image not known |

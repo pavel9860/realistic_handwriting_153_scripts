@@ -540,6 +540,33 @@
    "own": [
     "Lao"
    ]
+  },
+  {
+   "file": "ChartMyanmar-Regular.ttf",
+   "local": "fonts_local/ChartMyanmar-Regular.ttf",
+   "license": "see fonts_local/README.md",
+   "class": "cursive",
+   "own": [
+    "Myanmar"
+   ]
+  },
+  {
+   "file": "ChartGurmukhi-Regular.ttf",
+   "local": "fonts_local/ChartGurmukhi-Regular.ttf",
+   "license": "see fonts_local/README.md",
+   "class": "cursive",
+   "own": [
+    "Gurmukhi"
+   ]
+  },
+  {
+   "file": "ChartGeez-Regular.ttf",
+   "local": "fonts_local/ChartGeez-Regular.ttf",
+   "license": "see fonts_local/README.md",
+   "class": "cursive",
+   "own": [
+    "Ethiopic"
+   ]
   }
  ]
 }
