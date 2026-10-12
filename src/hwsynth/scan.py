@@ -29,27 +29,32 @@ def degrade(img, ink, rng, dpi, age, cfg=ScanCfg()):
     img = img.astype(np.float32)
     h, w = ink.shape
     k = dpi / 25.4
-    img = img * (1 - age * np.array(cfg.yellow))[None, None]  # yellowing
-    for _ in range(rng.poisson(cfg.foxing * age)):  # foxing spots
+    img *= (1 - age * np.array(cfg.yellow, np.float32))[None, None]  # yellowing
+    tint = np.array((0.3, 0.6, 1.0), np.float32)
+    for _ in range(rng.poisson(cfg.foxing * age)):  # foxing spots, computed in a window of 4 sigma
         r = rng.uniform(0.5, 4) * k
         y, x = rng.uniform(0, h), rng.uniform(0, w)
-        yy, xx = np.ogrid[:h, :w]
-        spot = np.exp(-((yy - y) ** 2 + (xx - x) ** 2) / (2 * r * r)).astype(np.float32)
-        img = img * (1 - rng.uniform(0.03, 0.15) * spot[..., None] * np.array((0.3, 0.6, 1.0)))
+        n = int(4 * r) + 1
+        y0, y1, x0, x1 = max(int(y) - n, 0), min(int(y) + n + 1, h), max(int(x) - n, 0), min(int(x) + n + 1, w)
+        yy = np.arange(y0, y1, dtype=np.float32)[:, None]
+        xx = np.arange(x0, x1, dtype=np.float32)[None, :]
+        spot = np.exp(-((yy - y) ** 2 + (xx - x) ** 2) / (2 * r * r))
+        img[y0:y1, x0:x1] *= 1 - rng.uniform(0.03, 0.15) * spot[..., None] * tint
     if rng.random() < cfg.p_bleed:  # text of the other side showing through
         ghost = cv2.GaussianBlur(np.roll(ink[:, ::-1], int(rng.uniform(-5, 5) * k), 0), (0, 0), 0.6 * k / 4)
-        img = img * (1 - rng.uniform(0.04, 0.12) * ghost[..., None])
+        img *= (1 - rng.uniform(0.04, 0.12) * ghost)[..., None]
     g = rng.uniform(0, cfg.shading)  # uneven light
-    ys, xs = np.mgrid[:h, :w].astype(np.float32)
+    xs = (np.arange(w, dtype=np.float32) / max(w, 1))[None, :]
+    ys = (np.arange(h, dtype=np.float32) / max(h, 1))[:, None]
     a = rng.uniform(0, 2 * np.pi)
-    plane = np.cos(a) * xs / max(w, 1) + np.sin(a) * ys / max(h, 1)
-    vign = (xs / max(w, 1) - 0.5) ** 2 + (ys / max(h, 1) - 0.5) ** 2
-    img = img * (1 - g * (0.6 * (plane - plane.min()) + 0.8 * vign))[..., None]
+    plane = np.cos(a) * xs + np.sin(a) * ys
+    vign = (xs - 0.5) ** 2 + (ys - 0.5) ** 2
+    img *= (1 - g * (0.6 * (plane - plane.min()) + 0.8 * vign))[..., None]
     if rng.random() < cfg.p_gray:
-        img = np.repeat(img.mean(2, keepdims=True), 3, 2)
+        img = np.repeat((img[..., :1] + img[..., 1:2] + img[..., 2:]) / 3, 3, 2)
     gamma = rng.uniform(*cfg.gamma)
-    img = np.clip(img, 0, 1) ** gamma
-    img = img + rng.normal(0, rng.uniform(*cfg.noise), img.shape).astype(np.float32)
+    img = cv2.pow(np.clip(img, 0, 1), gamma)
+    img += rng.standard_normal(img.shape, dtype=np.float32) * np.float32(rng.uniform(*cfg.noise))
     for _ in range(rng.poisson(cfg.dust)):  # dust and specks
         cv2.circle(
             img,
@@ -63,7 +68,7 @@ def degrade(img, ink, rng, dpi, age, cfg=ScanCfg()):
         img = cv2.GaussianBlur(img, (0, 0), s)
     img = np.clip(img, 0, 1)
     if rng.random() < cfg.p_bitonal:
-        g8 = (img.mean(2) * 255).astype(np.uint8)
+        g8 = ((img[..., 0] + img[..., 1] + img[..., 2]) * (255 / 3)).astype(np.uint8)
         t, _ = cv2.threshold(g8, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)  # adaptive: faint ink survives
         t = np.clip(t + rng.normal(0, 8), 30, 230)
         img = np.repeat((g8 > t).astype(np.float32)[..., None], 3, 2)
