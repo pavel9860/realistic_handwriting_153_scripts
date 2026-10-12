@@ -1,4 +1,4 @@
-# hwsynth: natural synthetic handwriting in the 17 scripts that have handwriting fonts
+# hwsynth: natural synthetic handwriting in the 21 scripts that have handwriting fonts
 
 `hwsynth` writes any text by hand in almost every script that Unicode encodes. It is not a font renderer. Letters
 are traced from handwriting fonts into pen paths. Those paths are rewritten by a

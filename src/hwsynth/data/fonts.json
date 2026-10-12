@@ -504,6 +504,33 @@
    "own": [
     "Sinhala"
    ]
+  },
+  {
+   "file": "ChartGeorgian-Regular.ttf",
+   "local": "fonts_local/ChartGeorgian-Regular.ttf",
+   "license": "see fonts_local/README.md",
+   "class": "cursive",
+   "own": [
+    "Georgian"
+   ]
+  },
+  {
+   "file": "ChartArmenian-Regular.ttf",
+   "local": "fonts_local/ChartArmenian-Regular.ttf",
+   "license": "see fonts_local/README.md",
+   "class": "cursive",
+   "own": [
+    "Armenian"
+   ]
+  },
+  {
+   "file": "ChartTibetan-Regular.ttf",
+   "local": "fonts_local/ChartTibetan-Regular.ttf",
+   "license": "see fonts_local/README.md",
+   "class": "cursive",
+   "own": [
+    "Tibetan"
+   ]
   }
  ]
 }
