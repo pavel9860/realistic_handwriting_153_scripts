@@ -1,7 +1,7 @@
 # hwsynth: natural synthetic handwriting in 153 Unicode scripts
 
 `hwsynth` writes any text by hand in almost every script that Unicode encodes. It is not a font renderer. Letters
-are traced from handwriting fonts (Noto for scripts without one) into pen paths. Those paths are rewritten by a
+are traced from handwriting fonts into pen paths. Those paths are rewritten by a
 writer model and moved by a model of the hand (lognormal sub-movements, wrist pivots). A model of the writing tool
 (17 pens, pencils, markers and nibs with pressure and angle) then puts ink on paper. Writers come in **24 handwriting
 types**, each available in **10 styles**, written with either hand. A bank of individuals found by quality-diversity search keeps every
@@ -20,7 +20,7 @@ It runs on CPU, needs no trained network, and uses no language model.
 ```bash
 pip install -e .                    # core
 pip install -e ".[evolve,dev]"      # search, metrics, tests
-python scripts/fetch_fonts.py       # 62 handwriting fonts + 158 Noto Sans fallbacks (~190 MB, OFL/Apache)
+python scripts/fetch_fonts.py       # the handwriting fonts of the manifest
 hwsynth coverage                    # scripts that can be written
 ```
 

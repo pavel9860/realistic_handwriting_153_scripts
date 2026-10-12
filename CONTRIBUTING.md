@@ -24,7 +24,7 @@ pytest -q
 
 ## Useful additions
 
-- Handwriting fonts for scripts that only have Noto fallbacks (see `hwsynth coverage --list`).
+- Handwriting fonts for scripts without one (see `hwsynth coverage --list`).
 - New handwriting types (`PERSONS`) or styles (`STYLES`) grounded in a source (forensic, palaeographic, pedagogical).
 - Better writer-similarity measures (`writerid.py`) and realism references.
 

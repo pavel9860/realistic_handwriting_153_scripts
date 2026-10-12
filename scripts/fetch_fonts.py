@@ -1,7 +1,7 @@
-"""Downloads the fonts of src/hwsynth/data/fonts.json (handwriting fonts and Noto Sans fallbacks) into the font
+"""Downloads the handwriting fonts of src/hwsynth/data/fonts.json into the font
 directory (HWSYNTH_FONTS, default ~/.cache/hwsynth/fonts). Existing files are kept.
 
-python scripts/fetch_fonts.py [--hand-only] [--workers 8]
+python scripts/fetch_fonts.py [--workers 8]
 """
 
 import argparse
@@ -33,13 +33,12 @@ def fetch(entry, out):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--hand-only", action="store_true")
     ap.add_argument("--workers", type=int, default=8)
     a = ap.parse_args()
     m = json.loads(MANIFEST.read_text(encoding="utf-8"))
     out = Paths().fonts
     out.mkdir(parents=True, exist_ok=True)
-    entries = m["fonts"] + ([] if a.hand_only else m["fallback"])
+    entries = m["fonts"]
     with ThreadPoolExecutor(a.workers) as ex:
         errors = [e for e in ex.map(lambda x: fetch(x, out), entries) if e]
     print(f"{len(entries) - len(errors)}/{len(entries)} fonts in {out}")

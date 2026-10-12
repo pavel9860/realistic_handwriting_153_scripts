@@ -1,4 +1,4 @@
-"""Font index: handwriting fonts (manifest) first, Noto and system fonts as fallback; per-script candidate lists."""
+"""Font index: the handwriting fonts of the manifest; per-script candidate lists."""
 
 import json
 import unicodedata
@@ -23,25 +23,14 @@ def manifest():
 
 
 def _files(paths):
-    out = sorted(p for p in paths.fonts.rglob("*") if p.suffix.lower() in SUFFIXES) if paths.fonts.exists() else []
-    for d in paths.system_fonts:
-        d = Path(d)
-        if d.exists():
-            out += sorted(p for p in d.rglob("*") if p.suffix.lower() in SUFFIXES and _system_ok(p.name))
-    return out
-
-
-def _system_ok(name):
-    n = name.lower()
-    return (
-        "regular" in n
-        and not any(k in n for k in ("mono", "display", "ui-", "ui.", "condensed"))
-        or n in ("dejavusans.ttf",)
-    )
+    man = manifest()
+    if not paths.fonts.exists():
+        return []
+    return sorted(p for p in paths.fonts.rglob("*") if p.suffix.lower() in SUFFIXES and p.name in man)
 
 
 class FontIndex:
-    """Fonts with their character sets. kind: hand (in the manifest) or fallback."""
+    """The manifest fonts with their character sets."""
 
     def __init__(self, paths=Paths()):
         self.paths = paths
@@ -66,8 +55,7 @@ class FontIndex:
         man = manifest()
         self.cmap = data
         self.meta = {f: man.get(Path(f).name, {}) for f in data}
-        self.hand = [f for f in data if Path(f).name in man and not self.meta[f].get("skip")]
-        self.fallback = [f for f in data if Path(f).name not in man]
+        self.hand = [f for f in data if not self.meta[f].get("skip")]
 
     def covers(self, font, text):
         m = self.cmap[font]
@@ -75,7 +63,7 @@ class FontIndex:
 
     @lru_cache(4096)
     def candidates(self, script, cls="any"):
-        """Handwriting fonts for a script (class-filtered when any match), else fallback fonts covering it."""
+        """Handwriting fonts for a script, class-filtered when any match; empty if the script has none."""
         core = core_letters(script)
         if not core:
             return ()
@@ -90,7 +78,7 @@ class FontIndex:
         hand = [f for f in self.hand if ok(f) and (childish or not self.meta[f].get("childish"))]
         if cls != "any":
             hand = [f for f in hand if self.meta[f].get("class") == cls] or hand
-        return tuple(hand) or tuple(f for f in self.fallback if ok(f))
+        return tuple(hand)
 
     def choose(self, script, u, cls="any"):
         """Font of a writer for a script; u in [0, 1) is the writer's font gene (shifted per script)."""
@@ -107,10 +95,10 @@ class FontIndex:
 
     @lru_cache(65536)
     def for_unit(self, font, unit):
-        """font if it has every character of unit, else the first handwriting, then fallback font that has."""
+        """font if it has every character of unit, else the first handwriting font that has, else None."""
         if font is not None and self.covers(font, unit):
             return font
-        for f in self.hand + self.fallback:
+        for f in self.hand:
             if self.covers(f, unit):
                 return f
         return None

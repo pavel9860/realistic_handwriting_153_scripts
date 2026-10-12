@@ -195,7 +195,7 @@ def _pad_same(rows):
 
 
 def coverage():
-    """{script: font kind} for scripts with a handwriting font ('hand') or only a fallback ('fallback')."""
+    """{script: 'hand'} for the scripts that have a handwriting font."""
     from .scripts import all_scripts
     from .writer import _index
 
@@ -204,7 +204,7 @@ def coverage():
     for s in all_scripts():
         c = fi.candidates(s)
         if c:
-            out[s] = "hand" if c[0] in fi.hand else "fallback"
+            out[s] = "hand"
     return out
 
 
@@ -213,8 +213,7 @@ def cmd_coverage(a):
     from .scripts import all_scripts
 
     print(
-        f"{len(c)} of {len(all_scripts())} Unicode scripts: {sum(v == 'hand' for v in c.values())} with "
-        f"handwriting fonts, {sum(v == 'fallback' for v in c.values())} through fallback fonts"
+        f"{len(c)} of {len(all_scripts())} Unicode scripts have a handwriting font"
     )
     if a.list:
         for s, v in sorted(c.items()):

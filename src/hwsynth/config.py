@@ -12,7 +12,6 @@ def _env_path(name, default):
 @dataclass(frozen=True)
 class Paths:
     fonts: Path = _env_path("HWSYNTH_FONTS", "~/.cache/hwsynth/fonts")
-    system_fonts: tuple = ("/usr/share/fonts",)  # extra fallback fonts (searched recursively)
     cache: Path = _env_path("HWSYNTH_CACHE", "~/.cache/hwsynth")
     data: Path = _env_path("HWSYNTH_DATA", "~/.cache/hwsynth/data")  # real-line references, writer banks, metrics
 
