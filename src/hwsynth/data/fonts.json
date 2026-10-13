@@ -567,6 +567,768 @@
    "own": [
     "Ethiopic"
    ]
+  },
+  {
+   "file": "LXGWWenKaiTC-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/lxgwwenkaitc/LXGWWenKaiTC-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Greek"
+   ]
+  },
+  {
+   "file": "Mynerve-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/mynerve/Mynerve-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Greek"
+   ]
+  },
+  {
+   "file": "EastSeaDokdo-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/eastseadokdo/EastSeaDokdo-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Hangul"
+   ]
+  },
+  {
+   "file": "NanumGothicCoding-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/nanumgothiccoding/NanumGothicCoding-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Hangul"
+   ]
+  },
+  {
+   "file": "Kapakana[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/kapakana/Kapakana[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Han",
+    "Hiragana",
+    "Katakana"
+   ]
+  },
+  {
+   "file": "SlacksideOne-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/slacksideone/SlacksideOne-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Han",
+    "Hiragana",
+    "Katakana"
+   ]
+  },
+  {
+   "file": "YujiHentaiganaAkari-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/yujihentaiganaakari/YujiHentaiganaAkari-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Han",
+    "Hiragana",
+    "Katakana"
+   ]
+  },
+  {
+   "file": "Charm-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/charm/Charm-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Thai"
+   ]
+  },
+  {
+   "file": "AmaticSC-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/amaticsc/AmaticSC-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Hebrew"
+   ]
+  },
+  {
+   "file": "Solitreo-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/solitreo/Solitreo-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Hebrew"
+   ]
+  },
+  {
+   "file": "Amita-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/amita/Amita-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Devanagari"
+   ]
+  },
+  {
+   "file": "Dekko-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/dekko/Dekko-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Devanagari"
+   ]
+  },
+  {
+   "file": "LakkiReddy-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/lakkireddy/LakkiReddy-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "cursive",
+   "own": [
+    "Telugu"
+   ]
+  },
+  {
+   "file": "GoogleSans[GRAD,opsz,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/googlesans/GoogleSans[GRAD,opsz,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Armenian"
+   ]
+  },
+  {
+   "file": "NotoSansArmenian[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosansarmenian/NotoSansArmenian[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Armenian"
+   ]
+  },
+  {
+   "file": "Handjet[ELGR,ELSH,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/handjet/Handjet[ELGR,ELSH,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Armenian"
+   ]
+  },
+  {
+   "file": "NotoSerifArmenian[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notoserifarmenian/NotoSerifArmenian[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Armenian"
+   ]
+  },
+  {
+   "file": "HindSiliguri-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/hindsiliguri/HindSiliguri-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Bengali"
+   ]
+  },
+  {
+   "file": "NotoSansBengali[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosansbengali/NotoSansBengali[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Bengali"
+   ]
+  },
+  {
+   "file": "NotoSerifBengali[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notoserifbengali/NotoSerifBengali[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Bengali"
+   ]
+  },
+  {
+   "file": "AnekBangla[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/anekbangla/AnekBangla[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Bengali"
+   ]
+  },
+  {
+   "file": "Agbalumo-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/agbalumo/Agbalumo-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Ethiopic"
+   ]
+  },
+  {
+   "file": "NotoSansEthiopic[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosansethiopic/NotoSansEthiopic[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Ethiopic"
+   ]
+  },
+  {
+   "file": "AbyssinicaSIL-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/abyssinicasil/AbyssinicaSIL-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Ethiopic"
+   ]
+  },
+  {
+   "file": "NotoSerifEthiopic[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notoserifethiopic/NotoSerifEthiopic[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Ethiopic"
+   ]
+  },
+  {
+   "file": "NotoSansGeorgian[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosansgeorgian/NotoSansGeorgian[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Georgian"
+   ]
+  },
+  {
+   "file": "NotoSerifGeorgian[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notoserifgeorgian/NotoSerifGeorgian[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Georgian"
+   ]
+  },
+  {
+   "file": "BalooBhai2[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/baloobhai2/BalooBhai2[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gujarati"
+   ]
+  },
+  {
+   "file": "Mogra-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/mogra/Mogra-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gujarati"
+   ]
+  },
+  {
+   "file": "HindVadodara-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/hindvadodara/HindVadodara-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gujarati"
+   ]
+  },
+  {
+   "file": "Shrikhand-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/shrikhand/Shrikhand-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gujarati"
+   ]
+  },
+  {
+   "file": "NotoSansGurmukhi[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosansgurmukhi/NotoSansGurmukhi[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gurmukhi"
+   ]
+  },
+  {
+   "file": "MuktaMahee-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/muktamahee/MuktaMahee-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gurmukhi"
+   ]
+  },
+  {
+   "file": "BalooPaaji2[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/baloopaaji2/BalooPaaji2[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gurmukhi"
+   ]
+  },
+  {
+   "file": "BhuTukaExpandedOne-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/bhutukaexpandedone/BhuTukaExpandedOne-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gurmukhi"
+   ]
+  },
+  {
+   "file": "NotoSansKhmer[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosanskhmer/NotoSansKhmer[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Khmer"
+   ]
+  },
+  {
+   "file": "KohSantepheap-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/kohsantepheap/KohSantepheap-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Khmer"
+   ]
+  },
+  {
+   "file": "Chenla.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/chenla/Chenla.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Khmer"
+   ]
+  },
+  {
+   "file": "Metal-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/metal/Metal-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Khmer"
+   ]
+  },
+  {
+   "file": "NotoSansLao[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosanslao/NotoSansLao[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Lao"
+   ]
+  },
+  {
+   "file": "NotoSerifLao[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notoseriflao/NotoSerifLao[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Lao"
+   ]
+  },
+  {
+   "file": "NotoSansLaoLooped[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosanslaolooped/NotoSansLaoLooped[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Lao"
+   ]
+  },
+  {
+   "file": "Phetsarath-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/phetsarath/Phetsarath-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Lao"
+   ]
+  },
+  {
+   "file": "NotoSansMyanmar[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosansmyanmar/NotoSansMyanmar[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Myanmar"
+   ]
+  },
+  {
+   "file": "Padauk-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/padauk/Padauk-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Myanmar"
+   ]
+  },
+  {
+   "file": "NotoSerifMyanmar-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notoserifmyanmar/NotoSerifMyanmar-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Myanmar"
+   ]
+  },
+  {
+   "file": "Maname-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/maname/Maname-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Sinhala"
+   ]
+  },
+  {
+   "file": "AbhayaLibre-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/abhayalibre/AbhayaLibre-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Sinhala"
+   ]
+  },
+  {
+   "file": "NotoSansSinhala[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosanssinhala/NotoSansSinhala[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Sinhala"
+   ]
+  },
+  {
+   "file": "StickNoBills[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/sticknobills/StickNoBills[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Sinhala"
+   ]
+  },
+  {
+   "file": "Jomolhari-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/jomolhari/Jomolhari-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Tibetan"
+   ]
+  },
+  {
+   "file": "NotoSerifTibetan[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notoseriftibetan/NotoSerifTibetan[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Tibetan"
+   ]
+  },
+  {
+   "file": "Uchen-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/uchen/Uchen-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Tibetan"
+   ]
+  },
+  {
+   "file": "Kanit-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/kanit/Kanit-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Thai"
+   ]
+  },
+  {
+   "file": "OpenSans[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/opensans/OpenSans[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Hebrew"
+   ]
+  },
+  {
+   "file": "Rubik[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/rubik/Rubik[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Arabic"
+   ]
+  },
+  {
+   "file": "NotoSansMalayalam[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosansmalayalam/NotoSansMalayalam[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Malayalam"
+   ]
+  },
+  {
+   "file": "Manjari-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/manjari/Manjari-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Malayalam"
+   ]
+  },
+  {
+   "file": "Arima[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/arima/Arima[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Malayalam"
+   ]
+  },
+  {
+   "file": "NotoSansTamil[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosanstamil/NotoSansTamil[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Tamil"
+   ]
+  },
+  {
+   "file": "Catamaran[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/catamaran/Catamaran[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Tamil"
+   ]
+  },
+  {
+   "file": "HindMadurai-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/hindmadurai/HindMadurai-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Tamil"
+   ]
+  },
+  {
+   "file": "Dhurjati-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/dhurjati/Dhurjati-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Telugu"
+   ]
+  },
+  {
+   "file": "NotoSansTelugu[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosanstelugu/NotoSansTelugu[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Telugu"
+   ]
+  },
+  {
+   "file": "TiroBangla-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/tirobangla/TiroBangla-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Bengali"
+   ]
+  },
+  {
+   "file": "BalooDa2[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/balooda2/BalooDa2[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Bengali"
+   ]
+  },
+  {
+   "file": "Alkatra[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/alkatra/Alkatra[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Bengali"
+   ]
+  },
+  {
+   "file": "Atma-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/atma/Atma-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Bengali"
+   ]
+  },
+  {
+   "file": "Menbere[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/menbere/Menbere[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Ethiopic"
+   ]
+  },
+  {
+   "file": "NotoSansGujarati[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosansgujarati/NotoSansGujarati[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gujarati"
+   ]
+  },
+  {
+   "file": "MuktaVaani-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/muktavaani/MuktaVaani-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gujarati"
+   ]
+  },
+  {
+   "file": "Rasa[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/rasa/Rasa[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gujarati"
+   ]
+  },
+  {
+   "file": "AnekGujarati[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/anekgujarati/AnekGujarati[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gujarati"
+   ]
+  },
+  {
+   "file": "BraahOne-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/braahone/BraahOne-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gurmukhi"
+   ]
+  },
+  {
+   "file": "TiroGurmukhi-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/tirogurmukhi/TiroGurmukhi-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gurmukhi"
+   ]
+  },
+  {
+   "file": "AnekGurmukhi[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/anekgurmukhi/AnekGurmukhi[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gurmukhi"
+   ]
+  },
+  {
+   "file": "NotoSerifGurmukhi[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notoserifgurmukhi/NotoSerifGurmukhi[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Gurmukhi"
+   ]
+  },
+  {
+   "file": "Angkor-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/angkor/Angkor-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Khmer"
+   ]
+  },
+  {
+   "file": "Bayon-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/bayon/Bayon-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Khmer"
+   ]
+  },
+  {
+   "file": "Koulen-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/koulen/Koulen-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Khmer"
+   ]
+  },
+  {
+   "file": "KantumruyPro[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/kantumruypro/KantumruyPro[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Khmer"
+   ]
+  },
+  {
+   "file": "GemunuLibre[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/gemunulibre/GemunuLibre[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Sinhala"
+   ]
+  },
+  {
+   "file": "Yaldevi[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/yaldevi/Yaldevi[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Sinhala"
+   ]
+  },
+  {
+   "file": "NotoSerifSinhala[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notoserifsinhala/NotoSerifSinhala[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Sinhala"
+   ]
   }
  ]
 }
