@@ -437,7 +437,11 @@ class Writer:
         on_rules = rules is not None
         slope = np.tan(np.radians(p["slope"])) * (0.15 if on_rules else 1)
         warp = Field(rng, p["elastic"] * xh * 0.04, xh * 6)
-        bends = [self._baseline(xh, width_mm, on_rules) for _ in range(n_lines)]
+        cuts = [[] for _ in range(n_lines)]       # gaps between words of a line, where the hand can be repositioned
+        by_line = [sorted((width_mm - x - adv if rtl else x, adv) for ln, x, _, adv in placed if ln == k) for k in range(n_lines)]
+        for k, ws in enumerate(by_line):
+            cuts[k] = [(a + b + c) / 2 for (a, b), (c, _) in zip(ws, ws[1:], strict=False)]
+        bends = [self._baseline(xh, width_mm, on_rules, cuts[k]) for k in range(n_lines)]
         strokes = []
         for ln, x, ss, adv in placed:
             X = width_mm - x - adv if rtl else x
@@ -500,21 +504,31 @@ class Writer:
         """Line pitch (x-heights) below which ascenders of a line meet descenders of the line above."""
         return 1.0 + 0.8 * self.p["asc"] + 0.7 * self.p["desc"]
 
-    def _baseline(self, xh, width, on_rules):
+    def _baseline(self, xh, width, on_rules, cuts=()):
         """Vertical offset of a line's baseline along x: bow plus smooth random wander (correlation length 15-60 mm),
-        both damped on ruled paper."""
+        both damped on ruled paper, plus the wrist's arcs. The hand is repositioned only in a gap between words (`cuts`),
+        after 25-60 mm of writing, and an arc rises at most 0.2 x-heights: a jump in the middle of a word, or of a quarter
+        of a letter's height at every 25-60 mm, is what a hand does not do."""
         p, rng = self.p, self.rng
         k = 0.3 if on_rules else 1.0
         bow = p["bow"] * xh * rng.uniform(0.3, 1) * k
         n = int(width) + 40
         wander = noise1d(rng, n, rng.uniform(15, 60), p["wander"] * xh * 0.18 * k)
         w = max(width, 1)
-        shifts = np.cumsum(rng.uniform(*self.mcfg.hand_shift, 40)) - 30
+        cuts = np.asarray(cuts, float)
+        shifts, pos = [], -25.0
+        while len(cuts):
+            ahead = cuts[cuts >= pos + rng.uniform(*self.mcfg.hand_shift)]
+            if not len(ahead):
+                break
+            pos = float(ahead[0])
+            shifts.append(pos)
+        radius = max(self.pivot_r, (self.mcfg.hand_shift[1] + 12) ** 2 / (2 * 0.2 * xh))   # +12 mm: the next gap after the limit
         side = (1 if self.left else -1) * k
         return lambda x: (
             bow * 4 * (x / w) * (1 - x / w)
             + np.interp(x + 20, np.arange(n), wander)
-            + pivot(x, np.r_[-25.0, shifts], self.pivot_r, side)
+            + pivot(x, np.r_[-25.0, shifts], radius, side)
         )
 
 
