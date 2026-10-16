@@ -400,8 +400,7 @@ def myanmar(c17, c12, c13, c15, out):
             comp = [big[j] for j in idx]
             m = np.isin(lb, comp).astype(np.uint8)
             cx = np.mean([c2[i][0] for i in comp]); cy = np.mean([c2[i][1] for i in comp])
-            cx0, cy0, cx1, cy1 = min(circ, key=lambda c: (c[0] + c[2]) / 2 - cx if False else abs((c[0] + c[2]) / 2 - cx) + abs((c[1] + c[3]) / 2 - cy))
-            bx = min(s2[i][0] for i in comp)
+            cx0, cy0, cx1, cy1 = min(circ, key=lambda c: abs((c[0] + c[2]) / 2 - cx) + abs((c[1] + c[3]) / 2 - cy))
             right = cp in (0x102C, 0x102B)
             x0 = min(s2[i][0] for i in comp)
             x1 = max(s2[i][0] + s2[i][2] for i in comp)

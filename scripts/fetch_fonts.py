@@ -8,7 +8,6 @@ import re
 import urllib.request
 from pathlib import Path
 
-from hwsynth.cli import coverage
 from hwsynth.config import Paths
 from hwsynth.fonts import MANIFEST
 from hwsynth.writer import _index
@@ -17,7 +16,8 @@ SUBSET = {"Cyrillic": "cyrillic", "Greek": "greek", "Hangul": "korean", "Hiragan
           "Hebrew": "hebrew", "Devanagari": "devanagari", "Arabic": "arabic", "Malayalam": "malayalam",
           "Tamil": "tamil", "Telugu": "telugu", "Han": "chinese-simplified", "Armenian": "armenian", "Bengali": "bengali",
           "Ethiopic": "ethiopic", "Georgian": "georgian", "Gujarati": "gujarati", "Gurmukhi": "gurmukhi", "Khmer": "khmer",
-          "Lao": "lao", "Myanmar": "myanmar", "Sinhala": "sinhala", "Tibetan": "tibetan"}
+          "Lao": "lao", "Myanmar": "myanmar", "Sinhala": "sinhala", "Tibetan": "tibetan", "Kannada": "kannada",
+          "Oriya": "oriya", "Meetei_Mayek": "meetei-mayek"}  # Thaana has no Google Fonts subset
 OWN = {"Hiragana": ["Han", "Hiragana", "Katakana"]}
 RAW = "https://raw.githubusercontent.com/google/fonts/main/{lic}/{dir}/{name}"
 
