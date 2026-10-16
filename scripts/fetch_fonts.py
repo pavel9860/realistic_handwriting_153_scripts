@@ -48,6 +48,7 @@ def main():
     ap.add_argument("metadata")
     ap.add_argument("--per-script", type=int, default=6)
     ap.add_argument("--print-per-script", type=int, default=4)
+    ap.add_argument("--only", nargs="*", help="scripts to fetch for (default: all)")
     a = ap.parse_args()
     raw = Path(a.metadata).read_text()
     fams = json.loads(raw[raw.index("{"):])["familyMetadataList"]
@@ -58,6 +59,8 @@ def main():
     fi = _index()
     added = []
     for script, sub in SUBSET.items():
+        if a.only and script not in a.only:
+            continue
         n_have = len(fi.candidates(script))
         pool = [f for f in fams if sub in f["subsets"] and f["category"] not in ("Monospace", "Symbols")]
         hand = [f for f in pool if f["category"] == "Handwriting"]

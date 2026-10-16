@@ -1329,6 +1329,123 @@
    "own": [
     "Sinhala"
    ]
+  },
+  {
+   "file": "NotoSansKannada[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosanskannada/NotoSansKannada[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Kannada"
+   ]
+  },
+  {
+   "file": "BalooTamma2[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/balootamma2/BalooTamma2[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Kannada"
+   ]
+  },
+  {
+   "file": "AnekKannada[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/anekkannada/AnekKannada[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Kannada"
+   ]
+  },
+  {
+   "file": "NotoSerifKannada[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notoserifkannada/NotoSerifKannada[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Kannada"
+   ]
+  },
+  {
+   "file": "AkayaKanadaka-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/akayakanadaka/AkayaKanadaka-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Kannada"
+   ]
+  },
+  {
+   "file": "Benne-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/benne/Benne-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Kannada"
+   ]
+  },
+  {
+   "file": "Hubballi-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/hubballi/Hubballi-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Kannada"
+   ]
+  },
+  {
+   "file": "TiroKannada-Regular.ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/tirokannada/TiroKannada-Regular.ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Kannada"
+   ]
+  },
+  {
+   "file": "NotoSansOriya[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosansoriya/NotoSansOriya[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Oriya"
+   ]
+  },
+  {
+   "file": "BalooBhaina2[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/baloobhaina2/BalooBhaina2[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Oriya"
+   ]
+  },
+  {
+   "file": "AnekOdia[wdth,wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/anekodia/AnekOdia[wdth,wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Oriya"
+   ]
+  },
+  {
+   "file": "NotoSerifOriya[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notoseriforiya/NotoSerifOriya[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Oriya"
+   ]
+  },
+  {
+   "file": "NotoSansMeeteiMayek[wght].ttf",
+   "url": "https://github.com/google/fonts/raw/main/ofl/notosansmeeteimayek/NotoSansMeeteiMayek[wght].ttf",
+   "license": "OFL-1.1",
+   "class": "print",
+   "own": [
+    "Meetei_Mayek"
+   ]
   }
  ]
 }
