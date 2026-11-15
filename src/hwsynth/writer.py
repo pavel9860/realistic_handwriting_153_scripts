@@ -122,8 +122,9 @@ class Writer:
         scr = S.text_script(text)
         size = xh * (1 + p["drift"] * (2 * t - 1)) * (1 + rng.normal(0, p["size_sd"] * 0.4))
         units = S.visual_units(text, scr)
-        base_font = self.font(scr)
-        alt_font = self.alt_font(scr)
+        fscr = scr if scr not in ("Common", "Inherited") else "Latin"           # digits and punctuation alone: the writer's Latin hand (it has them)
+        base_font = self.font(fscr)
+        alt_font = self.alt_font(fscr)
         sl0 = np.radians(p["slant"] + self.slant_drift + rng.normal(0, p["slant_sd"] * 0.5))
         uphill = np.radians(rng.normal(0, 0.3 + p["slant_sd"] * 0.12))
         ar = np.zeros(4)
@@ -136,7 +137,9 @@ class Writer:
                 continue
             strokes, adv = glyph(f, u)
             strokes = self._marks(strokes, u)
-            em = size * em_per_xh(f, scr if scr != "Common" else "Latin", GlyphCfg().px)
+            fs = fscr if f in (base_font, alt_font) else S.text_script(u)         # a fallback font (digits, marks the font lacks) is sized by the unit's own script
+            fs = fs if fs not in ("Common", "Inherited") else "Latin"
+            em = size * em_per_xh(f, fs, GlyphCfg().px)
             kk = (n - 1 - k) if rtl else k
             decay = 1 - p["trail"] * 0.3 * max(0.0, kk / max(n - 1, 1) - 0.4) / 0.6 if n > 3 else 1.0
             big = p["cap"] if u.isupper() else 1.0
@@ -144,11 +147,15 @@ class Writer:
             sx = p["xs"] * big * (1 + ar[0] * p["size_sd"]) * (1 + 0.3 * (1 - decay))
             sy = big * (1 + ar[1] * p["size_sd"]) * decay
             sl = sl0 + np.radians(ar[2] * p["slant_sd"])
-            rot = np.radians(rng.normal(0, p["rot_sd"]))
+            rot = np.radians(rng.normal(0, p["rot_sd"] + p.get("lv_rot", 0.0)))
             dy = ar[3] * p["base_sd"] * size - np.tan(uphill) * x
+            if p.get("lv_s", 0.0) or p.get("lv_dy", 0.0):         # letters vary on their own: independent size, width and height of every letter, and its rise
+                sx *= float(np.exp(rng.normal(0, p.get("lv_s", 0.0))))
+                sy *= float(np.exp(rng.normal(0, 0.8 * p.get("lv_s", 0.0))))
+                dy += rng.normal(0, p.get("lv_dy", 0.0)) * size
             c, s_ = np.cos(rot), np.sin(rot)
             A = np.array([[c, -s_], [s_, c]]) @ np.array([[1, -np.tan(sl)], [0, 1]]) @ np.diag([sx * em, sy * em])
-            zone = 1 / em_per_xh(f, scr if scr != "Common" else "Latin", GlyphCfg().px)
+            zone = 1 / em_per_xh(f, fs, GlyphCfg().px)
             gs = []
             ink = sum(np.hypot(*np.diff(st, axis=0).T).sum() for st in strokes)
             wscale = min(1.0, COMPLEX / max(ink / max(adv, 0.3), 1e-6))  # stroke length per em of advance
@@ -159,6 +166,13 @@ class Writer:
                 q = self._shape(self._ends(self._hand(self._zones(st, zone)), dot), dot) @ A.T + (x, dy)
                 if dot and scr in S.JOINABLE:
                     q = self._dot(q, size, sl)
+                if p.get("lv_warp", 0.0) and not dot and len(q) > 6:   # the form of the letter differs every time: a smooth random displacement along its path
+                    ctrl = rng.normal(0, p["lv_warp"] * size, (4, 2))
+                    q = q + np.stack([np.interp(np.linspace(0, 3, len(q)), np.arange(4), ctrl[:, 0]), np.interp(np.linspace(0, 3, len(q)), np.arange(4), ctrl[:, 1])], 1)
+                if p.get("lv_break", 0.0) and not dot and len(q) > 14 and rng.random() < p["lv_break"]:   # the pen leaves the paper in the middle of a stroke
+                    cut = int(len(q) * rng.uniform(0.25, 0.75))
+                    gs.append(Stroke(q[:cut], dot, script=scr, wscale=wscale))
+                    q = q[cut + 1:]
                 gs.append(Stroke(q, dot, script=scr, wscale=wscale))
             if (
                 prev is not None
@@ -170,7 +184,7 @@ class Writer:
                 self._join(prev[0], gs, size)
             out += gs
             prev = (gs, u)
-            x += adv * em * sx + (p["ls"] + rng.normal(0, p["ls_sd"])) * size
+            x += adv * em * sx * (1 + rng.normal(0, p.get("lv_gap", 0.0))) + (p["ls"] + rng.normal(0, p["ls_sd"])) * size
         return [s for s in out if s.p is not None], x
 
     def _hand(self, s):
@@ -431,7 +445,7 @@ class Writer:
                     s.word = len(words)
                 words.append(Word(ww.removeprefix(MATH_TAG), line, struck))
                 placed.append((line, x, strokes, adv))
-                gap = p["ws"] * xh * (1 + rng.normal(0, 0.25)) if space else rng.normal(0.05, 0.05) * xh
+                gap = p["ws"] * xh * (float(np.exp(rng.normal(0, p["ws_ln"]))) if p.get("ws_ln", 0.0) else 1 + rng.normal(0, p.get("ws_sd", 0.25))) if space else rng.normal(0.05, 0.05) * xh
                 x += adv + (max(gap, 0.3 * xh) if space else gap)
         n_lines = line + 1
         on_rules = rules is not None
