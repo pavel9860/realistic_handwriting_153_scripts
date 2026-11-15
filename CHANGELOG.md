@@ -2,6 +2,9 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions: [SemVer](https://semver.org/).
 
+## Unreleased
+- Tests: command line (`write`, coverage), stroke features.
+
 ## 0.3.0 (2026-11-15)
 ### Changed
 - Fonts: only Google Fonts of category Handwriting write; writer: digits and punctuation in the Latin hand, fallback
