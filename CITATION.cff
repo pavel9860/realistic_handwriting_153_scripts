@@ -4,6 +4,6 @@ title: "hwsynth: natural synthetic handwriting in 25 Unicode scripts"
 authors:
   - family-names: "pavel9860"
 type: software
-license: CC-BY-NC-4.0
+license: Apache-2.0
 version: 0.1.0
 date-released: 2026-10-10

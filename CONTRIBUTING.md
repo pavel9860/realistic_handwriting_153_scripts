@@ -28,4 +28,4 @@ pytest -q
 - New handwriting types (`PERSONS`) or styles (`STYLES`) grounded in a source (forensic, palaeographic, pedagogical).
 - Better writer-similarity measures (`writerid.py`) and realism references.
 
-By contributing you agree that your contribution is licensed under CC BY-NC 4.0.
+By contributing you agree that your contribution is licensed under Apache-2.0.

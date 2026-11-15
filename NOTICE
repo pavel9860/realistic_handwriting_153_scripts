@@ -1,0 +1,12 @@
+hwsynth
+Copyright 2026 pavel9860
+
+This product is licensed under the Apache License, Version 2.0 (LICENSE).
+Redistributions must keep this NOTICE and credit the original project:
+https://github.com/pavel9860/realistic_handwriting_153_scripts
+
+Third-party material keeps its own license and is NOT covered by Apache-2.0:
+- Fonts listed in src/hwsynth/data/fonts.json are downloaded by scripts/fetch_fonts.py (SIL OFL 1.1 or Apache-2.0, per entry).
+- src/hwsynth/data/fonts_local/: see its README.md. The Chart*.ttf fonts were traced from images whose provenance or
+  license is unknown (one carries a stock-photo watermark); do not redistribute them commercially until cleared.
+- src/hwsynth/data/Scripts.txt: Unicode Character Database, Unicode License v3.

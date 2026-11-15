@@ -132,9 +132,18 @@ examples/      sheets produced by `hwsynth examples`
 paper/         paper (LaTeX + PDF)
 ```
 
+## Pages and forms (`hwsynth.pagegen`)
+
+Full handwritten pages (letters, notes, lists, ruled and blank paper) and printed PDF forms filled by one writer, with
+text-line boxes. `pip install "hwsynth[pages]"`; see [docs/PAGEGEN.md](docs/PAGEGEN.md).
+
+```bash
+python scripts/generate_page.py out.png 1 plain
+```
+
 ## License
 
-Code and documentation are licensed under [CC BY-NC 4.0](LICENSE). The fonts are not part of this repository and
+Code and documentation are licensed under [Apache-2.0](LICENSE) (see [NOTICE](NOTICE)); versions up to 0.1.0 were CC BY-NC 4.0. The fonts are not part of this repository and
 keep their own licences (SIL OFL 1.1 or Apache 2.0, listed in `src/hwsynth/data/fonts.json`). `Scripts.txt` is
 Unicode data under the Unicode License.
 
