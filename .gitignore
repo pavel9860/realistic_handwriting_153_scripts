@@ -12,3 +12,4 @@ paper/*.out
 
 paper/*.pdf
 !paper/paper.pdf
+.coverage
