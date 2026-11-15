@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hwsynth"
-version = "0.2.1"
+version = "0.3.0"
 description = "Natural synthetic handwriting in almost every Unicode script: writer types, styles, pens, evolved writer banks"
 readme = "README.md"
 license = "Apache-2.0"
@@ -38,7 +38,12 @@ markers = ["slow: long-running tests"]
 
 [tool.ruff]
 line-length = 120
+target-version = "py311"
+extend-exclude = ["_aside", ".tmp", "_logs", "runs"]
+
+[tool.ruff.format]
+quote-style = "double"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "B"]
-ignore = ["E731", "E402", "E501", "B905", "B007", "B008", "B019", "B023"]
+select = ["E", "W", "F", "I", "B", "UP"]
+ignore = ["E501", "E731", "E741", "E402", "B905", "B007", "B008", "B019", "B023", "UP031", "UP038"]

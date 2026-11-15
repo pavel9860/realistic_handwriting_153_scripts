@@ -1,8 +1,8 @@
 """Font index: the handwriting fonts of the manifest; per-script candidate lists."""
 
 import json
-import unicodedata
 import pickle
+import unicodedata
 from functools import lru_cache
 from pathlib import Path
 
@@ -55,7 +55,11 @@ class FontIndex:
         man = manifest()
         self.cmap = data
         self.meta = {f: man.get(Path(f).name, {}) for f in data}
-        self.hand = [f for f in data if not self.meta[f].get("skip") and self.meta[f].get("gf_category", "Handwriting") == "Handwriting"]   # typed fonts (Google Fonts category Sans Serif / Serif / Display) are no hand
+        self.hand = [
+            f
+            for f in data
+            if not self.meta[f].get("skip") and self.meta[f].get("gf_category", "Handwriting") == "Handwriting"
+        ]  # typed fonts (Google Fonts category Sans Serif / Serif / Display) are no hand
 
     def covers(self, font, text):
         m = self.cmap[font]

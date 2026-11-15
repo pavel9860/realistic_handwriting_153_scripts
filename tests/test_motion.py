@@ -48,8 +48,9 @@ def test_min_jerk_trades_shape_for_energy():
 
 
 def test_effort_orders_styles():
-    import hwsynth as H
     from conftest import fonts_available
+
+    import hwsynth as H
     from hwsynth.motion import energy
 
     if not fonts_available():

@@ -40,9 +40,9 @@ def synthesise(p, rng, overlap, mu, sigma, tol, step, cfg=MotionCfg()):
     dur = np.exp(mu + 3 * sigma)
     mus = mu + rng.normal(0, cfg.mu_sd, k)
     sigs = np.clip(sigma + rng.normal(0, cfg.sigma_sd, k), 0.12, 0.6)
-    t0 = np.concatenate((
-        [0.0], np.cumsum(np.clip(2 * overlap * peak * (1 + rng.normal(0, cfg.interval_sd, k - 1)), 0.1 * peak, None))
-    ))
+    t0 = np.concatenate(
+        ([0.0], np.cumsum(np.clip(2 * overlap * peak * (1 + rng.normal(0, cfg.interval_sd, k - 1)), 0.1 * peak, None)))
+    )
     t = np.linspace(0, t0[-1] + 1.5 * dur, max(cfg.samples, cfg.per_component * k))
     dt = t[1] - t[0]
     a = (t0 / dt).astype(int)

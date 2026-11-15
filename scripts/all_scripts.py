@@ -4,10 +4,12 @@ python scripts/all_scripts.py [OUT_DIR]
 """
 
 import sys
+
 import cv2
 import numpy as np
+
 import hwsynth as H
-from hwsynth.cli import coverage, SAMPLES, _label
+from hwsynth.cli import SAMPLES, _label, coverage
 from hwsynth.fonts import core_letters
 from hwsynth.scripts import text_script
 

@@ -1,4 +1,5 @@
 import sys
+
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.cu2quPen import Cu2QuPen
 from fontTools.pens.transformPen import TransformPen
@@ -34,13 +35,15 @@ for line in open(src, encoding="utf-8", errors="replace"):
             cur["paths"].append((p[-2], list(map(float, p[:-2]))))
 by_gid = {c["gid"]: c for c in chars}
 
+
 def draw(c, pen, depth=0):
     open_ = False
     for op, v in c["paths"]:
         if op == "m":
             if open_:
                 pen.closePath()
-            pen.moveTo((v[0], v[1])); open_ = True
+            pen.moveTo((v[0], v[1]))
+            open_ = True
         elif op == "l":
             pen.lineTo((v[0], v[1]))
         else:
@@ -52,8 +55,10 @@ def draw(c, pen, depth=0):
             if gid in by_gid:
                 draw(by_gid[gid], TransformPen(pen, (m[0], m[1], m[2], m[3], m[4], m[5])), depth + 1)
 
+
 glyphs, cmap, metrics, order = {}, {}, {}, [".notdef"]
-glyphs[".notdef"] = TTGlyphPen(None).glyph(); metrics[".notdef"] = (500, 0)
+glyphs[".notdef"] = TTGlyphPen(None).glyph()
+metrics[".notdef"] = (500, 0)
 for c in chars:
     if c["uni"] < 0:
         continue
@@ -62,7 +67,10 @@ for c in chars:
         continue
     pen = TTGlyphPen(None)
     draw(c, Cu2QuPen(pen, 1.0, reverse_direction=True))
-    glyphs[name] = pen.glyph(); metrics[name] = (c["width"], 0); cmap[c["uni"]] = name; order.append(name)
+    glyphs[name] = pen.glyph()
+    metrics[name] = (c["width"], 0)
+    cmap[c["uni"]] = name
+    order.append(name)
 fb = FontBuilder(1000, isTTF=True)
 fb.setupGlyphOrder(order)
 fb.setupCharacterMap(cmap)

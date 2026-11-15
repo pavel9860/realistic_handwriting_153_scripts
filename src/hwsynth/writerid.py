@@ -10,10 +10,7 @@ evolution."""
 import cv2
 import numpy as np
 
-H = 64  # lines are scaled to this height
-FRAGS = (3, 5, 8)  # contour fragment lengths (px)
-N_DIR = 12  # direction bins over [0, pi)
-N_HINGE = 24  # hinge leg bins over [0, 2 pi)
+from .config import FRAGS, N_DIR, N_HINGE, H  # noqa: F401
 
 
 def descriptor(crop):

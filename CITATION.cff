@@ -1,9 +1,9 @@
-cff-version: 1.2.0
+cff-version: 0.3.0
 message: "If you use hwsynth, please cite it as below."
 title: "hwsynth: natural synthetic handwriting in 25 Unicode scripts"
 authors:
   - family-names: "pavel9860"
 type: software
 license: Apache-2.0
-version: 0.1.0
+version: 0.3.0
 date-released: 2026-10-10

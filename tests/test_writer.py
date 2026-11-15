@@ -1,7 +1,7 @@
 import numpy as np
+from conftest import needs_fonts
 
 import hwsynth as H
-from conftest import needs_fonts
 from hwsynth.config import GENES
 
 
@@ -104,8 +104,9 @@ def test_fitted_personas_load():
 def test_hand_is_repositioned_between_words_only():
     """The baseline has no jump inside a word: its steps lie in the gaps the writer was given."""
     import hwsynth as H
+
     w = H.sample_writer("school_cursive", "casual", seed=5, bank=False)
-    cuts = [float(c) for c in np.arange(8.0, 180.0, 8.0)]       # a gap every 8 mm, as between words
+    cuts = [float(c) for c in np.arange(8.0, 180.0, 8.0)]  # a gap every 8 mm, as between words
     f = w._baseline(3.5, 180.0, False, cuts)
     x = np.arange(0, 180, 0.05)
     y = np.array([float(f(v)) for v in x])

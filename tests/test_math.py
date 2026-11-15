@@ -1,7 +1,7 @@
 import numpy as np
+from conftest import needs_fonts
 
 import hwsynth as H
-from conftest import needs_fonts
 from hwsynth.figures import FIGURES, shape
 from hwsynth.math import chem, parse
 

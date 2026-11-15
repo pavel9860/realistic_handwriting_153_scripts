@@ -31,15 +31,15 @@ Fonts go to `~/.cache/hwsynth/fonts`, or set `HWSYNTH_FONTS`. Shaping needs Pill
 ```python
 import hwsynth as H
 
-w = H.sample_writer("school_cursive", "hurried", seed=7)   # a new individual of a type, in a style
+w = H.sample_writer("school_cursive", "hurried", seed=7)  # a new individual of a type, in a style
 s = H.write("Meet me at the station at 5:30.", w, width_mm=120, dpi=200, scan=None)  # scan look half the time
-s.image   # (H, W, 3) uint8 on paper
-s.ink     # (H, W) ink density in [0, 1], for compositing on your own backgrounds
-s.words   # [(text, (x0, y0, x1, y1) px, struck_out)] word boxes, for OCR / layout data
-s.meta    # writer, tool, ink, x-height, hand, ruled, dpi
+s.image  # (H, W, 3) uint8 on paper
+s.ink  # (H, W) ink density in [0, 1], for compositing on your own backgrounds
+s.words  # [(text, (x0, y0, x1, y1) px, struck_out)] word boxes, for OCR / layout data
+s.meta  # writer, tool, ink, x-height, hand, ruled, dpi
 
-person, genes = H.individual("iam", seed=3)                 # a persona fitted to a real writer (or a type name)
-for style in H.STYLES:                                       # ... in every situation
+person, genes = H.individual("iam", seed=3)  # a persona fitted to a real writer (or a type name)
+for style in H.STYLES:  # ... in every situation
     H.write("Dear Anna,", H.styled(person, genes, style, seed=1))
 ```
 
@@ -47,7 +47,7 @@ Math and chemistry go inline between `$...$`, and figures are drawn by the same 
 
 ```python
 H.write(r"Solve $x^{2}-5x+6=0$: $x=\frac{5\pm 1}{2}$; burn $\ce{CH4 + 2O2 -> CO2 + 2H2O}$ $\benzene$", w)
-H.figure("axes", w, size=50)          # circle ellipse triangle square rectangle arrow star check cross axes underline
+H.figure("axes", w, size=50)  # circle ellipse triangle square rectangle arrow star check cross axes underline
 ```
 
 Supported: `^` `_` with `{...}` groups, `\frac`, `\sqrt`, Greek letters and symbols (`\int \sum \pi \infty \pm \leq ...`),

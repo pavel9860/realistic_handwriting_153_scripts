@@ -7,18 +7,16 @@ import numpy as np
 import regex
 
 from . import scripts as S
-from .config import GENE_INDEX, GENES, HABITS, LEFT_HANDED, QUOTES, GlyphCfg, MotionCfg
+from .config import AR, COMPLEX, GENE_INDEX, GENES, HABITS, LEFT_HANDED, QUOTES, GlyphCfg, MotionCfg  # noqa: F401
 from .fonts import FontIndex, em_per_xh
+from .motion import effort_lambda, min_jerk, pivot, synthesise
 from .noise import Field, noise1d
 from .pen import Pen
-from .motion import effort_lambda, min_jerk, pivot, synthesise
 from .skeleton import glyph, resample, smooth
 
 MATH = regex.compile(r"\$([^$]*)\$")  # inline math segments
 MATH_TAG = "\x00math:"
 STABLE = ("font", "allo", "hand", "ring", "asc", "desc", "cap", "xs", "angular", "hook", "letters")
-COMPLEX = 6.0  # glyphs with more stroke length per em of advance than this get a proportionally thinner pen
-AR = 0.6  # correlation of size, slant and baseline jitter between neighbouring letters
 
 
 def decode(genes):
@@ -122,7 +120,9 @@ class Writer:
         scr = S.text_script(text)
         size = xh * (1 + p["drift"] * (2 * t - 1)) * (1 + rng.normal(0, p["size_sd"] * 0.4))
         units = S.visual_units(text, scr)
-        fscr = scr if scr not in ("Common", "Inherited") else "Latin"           # digits and punctuation alone: the writer's Latin hand (it has them)
+        fscr = (
+            scr if scr not in ("Common", "Inherited") else "Latin"
+        )  # digits and punctuation alone: the writer's Latin hand (it has them)
         base_font = self.font(fscr)
         alt_font = self.alt_font(fscr)
         sl0 = np.radians(p["slant"] + self.slant_drift + rng.normal(0, p["slant_sd"] * 0.5))
@@ -137,7 +137,9 @@ class Writer:
                 continue
             strokes, adv = glyph(f, u)
             strokes = self._marks(strokes, u)
-            fs = fscr if f in (base_font, alt_font) else S.text_script(u)         # a fallback font (digits, marks the font lacks) is sized by the unit's own script
+            fs = (
+                fscr if f in (base_font, alt_font) else S.text_script(u)
+            )  # a fallback font (digits, marks the font lacks) is sized by the unit's own script
             fs = fs if fs not in ("Common", "Inherited") else "Latin"
             em = size * em_per_xh(f, fs, GlyphCfg().px)
             kk = (n - 1 - k) if rtl else k
@@ -149,7 +151,9 @@ class Writer:
             sl = sl0 + np.radians(ar[2] * p["slant_sd"])
             rot = np.radians(rng.normal(0, p["rot_sd"] + p.get("lv_rot", 0.0)))
             dy = ar[3] * p["base_sd"] * size - np.tan(uphill) * x
-            if p.get("lv_s", 0.0) or p.get("lv_dy", 0.0):         # letters vary on their own: independent size, width and height of every letter, and its rise
+            if p.get("lv_s", 0.0) or p.get(
+                "lv_dy", 0.0
+            ):  # letters vary on their own: independent size, width and height of every letter, and its rise
                 sx *= float(np.exp(rng.normal(0, p.get("lv_s", 0.0))))
                 sy *= float(np.exp(rng.normal(0, 0.8 * p.get("lv_s", 0.0))))
                 dy += rng.normal(0, p.get("lv_dy", 0.0)) * size
@@ -166,13 +170,23 @@ class Writer:
                 q = self._shape(self._ends(self._hand(self._zones(st, zone)), dot), dot) @ A.T + (x, dy)
                 if dot and scr in S.JOINABLE:
                     q = self._dot(q, size, sl)
-                if p.get("lv_warp", 0.0) and not dot and len(q) > 6:   # the form of the letter differs every time: a smooth random displacement along its path
+                if (
+                    p.get("lv_warp", 0.0) and not dot and len(q) > 6
+                ):  # the form of the letter differs every time: a smooth random displacement along its path
                     ctrl = rng.normal(0, p["lv_warp"] * size, (4, 2))
-                    q = q + np.stack([np.interp(np.linspace(0, 3, len(q)), np.arange(4), ctrl[:, 0]), np.interp(np.linspace(0, 3, len(q)), np.arange(4), ctrl[:, 1])], 1)
-                if p.get("lv_break", 0.0) and not dot and len(q) > 14 and rng.random() < p["lv_break"]:   # the pen leaves the paper in the middle of a stroke
+                    q = q + np.stack(
+                        [
+                            np.interp(np.linspace(0, 3, len(q)), np.arange(4), ctrl[:, 0]),
+                            np.interp(np.linspace(0, 3, len(q)), np.arange(4), ctrl[:, 1]),
+                        ],
+                        1,
+                    )
+                if (
+                    p.get("lv_break", 0.0) and not dot and len(q) > 14 and rng.random() < p["lv_break"]
+                ):  # the pen leaves the paper in the middle of a stroke
                     cut = int(len(q) * rng.uniform(0.25, 0.75))
                     gs.append(Stroke(q[:cut], dot, script=scr, wscale=wscale))
-                    q = q[cut + 1:]
+                    q = q[cut + 1 :]
                 gs.append(Stroke(q, dot, script=scr, wscale=wscale))
             if (
                 prev is not None
@@ -184,7 +198,9 @@ class Writer:
                 self._join(prev[0], gs, size)
             out += gs
             prev = (gs, u)
-            x += adv * em * sx * (1 + rng.normal(0, p.get("lv_gap", 0.0))) + (p["ls"] + rng.normal(0, p["ls_sd"])) * size
+            x += (
+                adv * em * sx * (1 + rng.normal(0, p.get("lv_gap", 0.0))) + (p["ls"] + rng.normal(0, p["ls_sd"])) * size
+            )
         return [s for s in out if s.p is not None], x
 
     def _hand(self, s):
@@ -248,7 +264,9 @@ class Writer:
         f = Field(r, amp * 0.03, r.uniform(0.35, 0.7))
         sx, sy, sh = 1 + r.normal(0, 0.05 * amp), 1 + r.normal(0, 0.04 * amp), r.normal(0, 0.04 * amp)
         c = s.mean(0)
-        return f(c + ((s - c) * (sx, sy)) + np.column_stack((-(s[:, 1] - c[1]) * sh, np.zeros(len(s))))) if len(s) else s
+        return (
+            f(c + ((s - c) * (sx, sy)) + np.column_stack((-(s[:, 1] - c[1]) * sh, np.zeros(len(s))))) if len(s) else s
+        )
 
     def _ends(self, s, dot):
         """Stroke ends overshoot or stop short of where they meet (em): no two strokes join exactly."""
@@ -445,14 +463,27 @@ class Writer:
                     s.word = len(words)
                 words.append(Word(ww.removeprefix(MATH_TAG), line, struck))
                 placed.append((line, x, strokes, adv))
-                gap = p["ws"] * xh * (float(np.exp(rng.normal(0, p["ws_ln"]))) if p.get("ws_ln", 0.0) else 1 + rng.normal(0, p.get("ws_sd", 0.25))) if space else rng.normal(0.05, 0.05) * xh
+                gap = (
+                    p["ws"]
+                    * xh
+                    * (
+                        float(np.exp(rng.normal(0, p["ws_ln"])))
+                        if p.get("ws_ln", 0.0)
+                        else 1 + rng.normal(0, p.get("ws_sd", 0.25))
+                    )
+                    if space
+                    else rng.normal(0.05, 0.05) * xh
+                )
                 x += adv + (max(gap, 0.3 * xh) if space else gap)
         n_lines = line + 1
         on_rules = rules is not None
         slope = np.tan(np.radians(p["slope"])) * (0.15 if on_rules else 1)
         warp = Field(rng, p["elastic"] * xh * 0.04, xh * 6)
-        cuts = [[] for _ in range(n_lines)]       # gaps between words of a line, where the hand can be repositioned
-        by_line = [sorted((width_mm - x - adv if rtl else x, adv) for ln, x, _, adv in placed if ln == k) for k in range(n_lines)]
+        cuts = [[] for _ in range(n_lines)]  # gaps between words of a line, where the hand can be repositioned
+        by_line = [
+            sorted((width_mm - x - adv if rtl else x, adv) for ln, x, _, adv in placed if ln == k)
+            for k in range(n_lines)
+        ]
         for k, ws in enumerate(by_line):
             cuts[k] = [(a + b + c) / 2 for (a, b), (c, _) in zip(ws, ws[1:], strict=False)]
         bends = [self._baseline(xh, width_mm, on_rules, cuts[k]) for k in range(n_lines)]
@@ -492,7 +523,9 @@ class Writer:
             s.p = warp(s.p)
             if len(s.p) > 3 and p["tremor"] > 0.05:
                 n = len(s.p)
-                s.p = s.p + np.column_stack((noise1d(rng, n, 1.2, 1), noise1d(rng, n, 1.2, 1))) * p["tremor"] * xh * 0.012
+                s.p = (
+                    s.p + np.column_stack((noise1d(rng, n, 1.2, 1), noise1d(rng, n, 1.2, 1))) * p["tremor"] * xh * 0.012
+                )
 
     def motion(self, scr):
         """(overlap, mu, sigma) of the writer's sub-movements in a script: speed sets fluency and tempo, tremor and
@@ -537,7 +570,9 @@ class Writer:
                 break
             pos = float(ahead[0])
             shifts.append(pos)
-        radius = max(self.pivot_r, (self.mcfg.hand_shift[1] + 12) ** 2 / (2 * 0.2 * xh))   # +12 mm: the next gap after the limit
+        radius = max(
+            self.pivot_r, (self.mcfg.hand_shift[1] + 12) ** 2 / (2 * 0.2 * xh)
+        )  # +12 mm: the next gap after the limit
         side = (1 if self.left else -1) * k
         return lambda x: (
             bow * 4 * (x / w) * (1 - x / w)

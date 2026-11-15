@@ -826,3 +826,45 @@ class RefsCfg:
     max_h: int = 120
     min_aspect: float = 8.0
     knn_hw: float = 0.6  # kept when this share of the 5 nearest labelled lines are handwriting
+
+
+# page
+PAPERS = ((0.97, 0.965, 0.94), (0.99, 0.99, 0.98), (0.96, 0.95, 0.90), (0.98, 0.97, 0.93))
+
+# scripts
+REF = {
+    "Latin": ("x", 1.0),
+    "Cyrillic": ("х", 1.0),
+    "Greek": ("ο", 1.0),
+    "Armenian": ("ս", 1.0),
+    "Georgian": ("ა", 1.0),
+    "Hebrew": ("ם", 1.15),
+    "Arabic": ("ن", 1.3),
+    "Devanagari": ("क", 1.5),
+    "Bengali": ("ক", 1.5),
+    "Gujarati": ("ક", 1.3),
+    "Gurmukhi": ("ਕ", 1.5),
+    "Tamil": ("க", 1.2),
+    "Telugu": ("క", 1.4),
+    "Kannada": ("ಕ", 1.4),
+    "Malayalam": ("ക", 1.2),
+    "Thai": ("ก", 1.15),
+    "Han": ("国", 2.0),
+    "Hiragana": ("あ", 1.8),
+    "Katakana": ("カ", 1.8),
+    "Hangul": ("한", 2.0),
+    "Ethiopic": ("ሀ", 1.4),
+    "Cherokee": ("Ꮳ", 1.6),
+    "Canadian_Aboriginal": ("ᐃ", 1.3),
+}
+DEFAULT_REF = 1.4  # median letter of other scripts, in x-heights
+
+# writer
+COMPLEX = 6.0  # glyphs with more stroke length per em of advance than this get a proportionally thinner pen
+AR = 0.6  # correlation of size, slant and baseline jitter between neighbouring letters
+
+# writerid
+H = 64  # lines are scaled to this height
+FRAGS = (3, 5, 8)  # contour fragment lengths (px)
+N_DIR = 12  # direction bins over [0, pi)
+N_HINGE = 24  # hinge leg bins over [0, 2 pi)

@@ -5,9 +5,8 @@ from dataclasses import dataclass
 import cv2
 import numpy as np
 
+from .config import PAPERS  # noqa: F401
 from .pen import render
-
-PAPERS = ((0.97, 0.965, 0.94), (0.99, 0.99, 0.98), (0.96, 0.95, 0.90), (0.98, 0.97, 0.93))
 
 
 @dataclass

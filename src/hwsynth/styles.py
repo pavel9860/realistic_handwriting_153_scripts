@@ -5,20 +5,19 @@ import json
 import numpy as np
 
 from .config import (
-    HABITS,
     CENTRED,
     GENE_INDEX,
     GENES,
+    HABITS,
     IDENTITY,
     NOISE_SKEW,
     PERSON_SPREAD,
     PERSONS,
     STYLES,
-    QDCfg,
     Paths,
+    QDCfg,
 )
 from .writer import Writer, encode
-
 
 CHILDISH_TYPES = ("child",)  # only these may use fonts marked childish in the manifest
 CHILDISH_STYLES = ("uneducated",)

@@ -7,6 +7,8 @@ from pathlib import Path
 
 import regex
 
+from .config import DEFAULT_REF, REF  # noqa: F401
+
 # Scripts whose grapheme clusters are drawn one by one (each with its own jitter); all others are shaped and drawn
 # word by word (joining and conjuncts come from the font).
 CLUSTERED = frozenset(
@@ -71,32 +73,6 @@ NOSPACE = frozenset(
 JOINABLE = frozenset({"Latin", "Cyrillic", "Greek", "Armenian", "Georgian"})
 CHARWISE = frozenset({"Han", "Hiragana", "Katakana", "Yi"})  # line breaks between any two characters
 # Reference letter of a script and its height in x-heights (sets how large the script is written).
-REF = {
-    "Latin": ("x", 1.0),
-    "Cyrillic": ("х", 1.0),
-    "Greek": ("ο", 1.0),
-    "Armenian": ("ս", 1.0),
-    "Georgian": ("ა", 1.0),
-    "Hebrew": ("ם", 1.15),
-    "Arabic": ("ن", 1.3),
-    "Devanagari": ("क", 1.5),
-    "Bengali": ("ক", 1.5),
-    "Gujarati": ("ક", 1.3),
-    "Gurmukhi": ("ਕ", 1.5),
-    "Tamil": ("க", 1.2),
-    "Telugu": ("క", 1.4),
-    "Kannada": ("ಕ", 1.4),
-    "Malayalam": ("ക", 1.2),
-    "Thai": ("ก", 1.15),
-    "Han": ("国", 2.0),
-    "Hiragana": ("あ", 1.8),
-    "Katakana": ("カ", 1.8),
-    "Hangul": ("한", 2.0),
-    "Ethiopic": ("ሀ", 1.4),
-    "Cherokee": ("Ꮳ", 1.6),
-    "Canadian_Aboriginal": ("ᐃ", 1.3),
-}
-DEFAULT_REF = 1.4  # median letter of other scripts, in x-heights
 UNIT = regex.compile(r"\X")
 
 

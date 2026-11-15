@@ -80,6 +80,7 @@ def ocr(crop):
 def font_baseline(text, seed):
     """Plain font rendering: a handwriting font, no writer model, no pen model."""
     from PIL import Image, ImageDraw
+
     from .writer import _index
 
     fi = _index()

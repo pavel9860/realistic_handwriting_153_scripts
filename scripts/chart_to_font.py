@@ -41,7 +41,9 @@ def load(path):
 
 def kmeans1(values, k):
     v = np.float32(values).reshape(-1, 1)
-    _, lab, c = cv2.kmeans(v, k, None, (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.01), 10, cv2.KMEANS_PP_CENTERS)
+    _, lab, c = cv2.kmeans(
+        v, k, None, (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.01), 10, cv2.KMEANS_PP_CENTERS
+    )
     rank = np.empty(k, int)
     rank[np.argsort(c.ravel())] = np.arange(k)
     return rank[lab.ravel()]
@@ -68,7 +70,9 @@ def glyph(mask, x_ref, baseline, scale):
     h, w = mask.shape
     sub = np.zeros((y1 - y0, x1 - x0), np.uint8)
     sy0, sx0 = max(y0, 0), max(x0, 0)
-    sub[sy0 - y0:sy0 - y0 + min(y1, h) - sy0, sx0 - x0:sx0 - x0 + min(x1, w) - sx0] = mask[sy0:min(y1, h), sx0:min(x1, w)]
+    sub[sy0 - y0 : sy0 - y0 + min(y1, h) - sy0, sx0 - x0 : sx0 - x0 + min(x1, w) - sx0] = mask[
+        sy0 : min(y1, h), sx0 : min(x1, w)
+    ]
     for c in contours(sub):
         pts = [(round((px + x0 - x_ref) * scale + 40), round((baseline - (py + y0)) * scale)) for px, py in c]
         pen.moveTo(pts[0])
@@ -102,23 +106,30 @@ def punctuation(kind):
     """Simple marks drawn as dots and bars: [(code point, glyph, advance)]."""
     r = 46
     if kind == "armenian":
-        return [(0x589, poly_glyph([disc(70, 60, r), disc(70, 420, r)]), 200),
-                (0x55D, poly_glyph([bar(80, 430, 640, lean=-60)]), 200)]
+        return [
+            (0x589, poly_glyph([disc(70, 60, r), disc(70, 420, r)]), 200),
+            (0x55D, poly_glyph([bar(80, 430, 640, lean=-60)]), 200),
+        ]
     if kind == "tibetan":
-        return [(0x0F0B, poly_glyph([disc(60, 260, r)]), 150),
-                (0x0F0D, poly_glyph([bar(70, -40, 560)]), 200),
-                (0x0F0E, poly_glyph([bar(60, -40, 560), bar(190, -40, 560)]), 320)]
+        return [
+            (0x0F0B, poly_glyph([disc(60, 260, r)]), 150),
+            (0x0F0D, poly_glyph([bar(70, -40, 560)]), 200),
+            (0x0F0E, poly_glyph([bar(60, -40, 560), bar(190, -40, 560)]), 320),
+        ]
     if kind == "geez":
-        return [(0x1361, poly_glyph([disc(70, 90, r), disc(70, 420, r)]), 200),
-                (0x1362, poly_glyph([disc(70, 90, r), disc(70, 420, r), disc(250, 90, r), disc(250, 420, r)]), 380),
-                (0x1363, poly_glyph([disc(70, 420, r), bar(70, 40, 330, lean=-50)]), 200),
-                (0x1364, poly_glyph([disc(70, 420, r), disc(70, 160, r), bar(70, -90, 80, lean=-40)]), 200)]
+        return [
+            (0x1361, poly_glyph([disc(70, 90, r), disc(70, 420, r)]), 200),
+            (0x1362, poly_glyph([disc(70, 90, r), disc(70, 420, r), disc(250, 90, r), disc(250, 420, r)]), 380),
+            (0x1363, poly_glyph([disc(70, 420, r), bar(70, 40, 330, lean=-50)]), 200),
+            (0x1364, poly_glyph([disc(70, 420, r), disc(70, 160, r), bar(70, -90, 80, lean=-40)]), 200),
+        ]
     return []
 
 
 def ligature(first, second, overlap=70):
     """TT glyph of two glyphs side by side: (glyph, advance); first/second are (glyph, advance)."""
     from fontTools.pens.transformPen import TransformPen
+
     pen = TTGlyphPen(None)
     first[0].draw(pen, None)
     second[0].draw(TransformPen(pen, (1, 0, 0, 1, first[1] - overlap, 0)), None)
@@ -161,8 +172,10 @@ def nuskhuri(img):
     rows = [r_ for r_, _, _ in key]
     scale = XHEIGHT * 1.4 / np.median([st[i][3] for i in order])
     base = {k: np.median([st[i][1] + st[i][3] for i, r_ in zip(order, rows) if r_ == k]) for k in set(rows)}
-    return [(0x2D00 + k, glyph((lab == i).astype(np.uint8), st[i][0], base[r_], scale), st[i][2] * scale + 80)
-            for k, (i, r_) in enumerate(zip(order, rows))]
+    return [
+        (0x2D00 + k, glyph((lab == i).astype(np.uint8), st[i][0], base[r_], scale), st[i][2] * scale + 80)
+        for k, (i, r_) in enumerate(zip(order, rows))
+    ]
 
 
 def georgian(img, out, old=None):
@@ -176,7 +189,9 @@ def georgian(img, out, old=None):
     base = [np.median([st[order[r * 11 + j]][1] + st[order[r * 11 + j]][3] for j in range(11)]) for r in range(3)]
     ents = []
     for k, (ch, i) in enumerate(zip(GEORGIAN, order)):
-        ents.append((ord(ch), glyph((lab == i).astype(np.uint8), st[i][0], base[k // 11], scale), st[i][2] * scale + 80))
+        ents.append(
+            (ord(ch), glyph((lab == i).astype(np.uint8), st[i][0], base[k // 11], scale), st[i][2] * scale + 80)
+        )
     if old is not None:
         ents += nuskhuri(old)
     write(out, ents, "ChartGeorgian")
@@ -229,13 +244,13 @@ def tibetan(img, out):
     for ch, m, (x, y, w, h) in zip(TIBETAN, masks[:30], boxes[:30]):
         ents.append((ord(ch), glyph(m, x, y + h, scale), w * scale + 80))
     base_m, (bx, by, bw, bh) = masks[30], boxes[30]
-    tpl = base_m[by:by + bh, bx:bx + bw]
+    tpl = base_m[by : by + bh, bx : bx + bw]
     for cp, m, (x, y, w, h) in zip(TIBETAN_MARKS, masks[31:], boxes[31:]):
         pad = np.pad(m, 20)
         res = cv2.matchTemplate(pad.astype(np.float32), tpl.astype(np.float32), cv2.TM_CCORR)
         _, _, _, (mx, my) = cv2.minMaxLoc(res)
         shifted = np.zeros_like(pad)
-        shifted[my:my + bh, mx:mx + bw] = tpl
+        shifted[my : my + bh, mx : mx + bw] = tpl
         mark = (pad & ~cv2.dilate(shifted, np.ones((5, 5), np.uint8)))[20:-20, 20:-20]
         n, l2, s2, _ = cv2.connectedComponentsWithStats(mark, connectivity=8)
         keep = np.isin(l2, [i for i in range(1, n) if s2[i][4] >= 20]).astype(np.uint8)
@@ -249,10 +264,25 @@ LAO = "ກຂຄງຈສຊຍດຕຖທນບປຜຝພຟມຢຣລວ�
 # (row, column) of the syllable chart -> (code point, kind): kind r right, l left (both take an advance), a above or
 # below the consonant (zero advance, drawn over it)
 LAO_MARKS = {
-    (0, 0): (0x0EB0, "r"), (0, 1): (0x0EB1, "a"), (0, 2): (0x0EB4, "a"), (0, 3): (0x0EB6, "a"), (0, 4): (0x0EB8, "a"),
-    (1, 2): (0x0EBB, "a"), (1, 6): (0x0EB2, "r"), (1, 7): (0x0EB5, "a"), (2, 0): (0x0EB7, "a"), (2, 1): (0x0EB9, "a"),
-    (2, 2): (0x0EC0, "l"), (2, 3): (0x0EC1, "l"), (2, 4): (0x0EC2, "l"), (2, 5): (0x0ECD, "a"),
-    (3, 5): (0x0EC4, "l"), (3, 6): (0x0EC3, "l"), (4, 1): (0x0EBD, "r"), (4, 6): (0x0EB3, "ar"), (4, 7): (0x0ECC, "a"),
+    (0, 0): (0x0EB0, "r"),
+    (0, 1): (0x0EB1, "a"),
+    (0, 2): (0x0EB4, "a"),
+    (0, 3): (0x0EB6, "a"),
+    (0, 4): (0x0EB8, "a"),
+    (1, 2): (0x0EBB, "a"),
+    (1, 6): (0x0EB2, "r"),
+    (1, 7): (0x0EB5, "a"),
+    (2, 0): (0x0EB7, "a"),
+    (2, 1): (0x0EB9, "a"),
+    (2, 2): (0x0EC0, "l"),
+    (2, 3): (0x0EC1, "l"),
+    (2, 4): (0x0EC2, "l"),
+    (2, 5): (0x0ECD, "a"),
+    (3, 5): (0x0EC4, "l"),
+    (3, 6): (0x0EC3, "l"),
+    (4, 1): (0x0EBD, "r"),
+    (4, 6): (0x0EB3, "ar"),
+    (4, 7): (0x0ECC, "a"),
 }
 SYLLABLE_ROWS = [(0, 45), (110, 185), (245, 320), (375, 455), (505, 590)]
 
@@ -301,8 +331,13 @@ def lao(consonants, syllables, out):
         cx = bcen[base[(r, c)]][0]
         y0, y1 = SYLLABLE_ROWS[r]
         cy = bcen[base[(r, c)]][1]
-        return [i for i in rids if abs(rcen[i][1] - cy) < 35 and abs(rcen[i][0] - cx) < 45
-                and abs(rcen[i][0] - cx) == min(abs(rcen[i][0] - bcen[base[(r, k)]][0]) for k in range(8))]
+        return [
+            i
+            for i in rids
+            if abs(rcen[i][1] - cy) < 35
+            and abs(rcen[i][0] - cx) < 45
+            and abs(rcen[i][0] - cx) == min(abs(rcen[i][0] - bcen[base[(r, k)]][0]) for k in range(8))
+        ]
 
     for (r, c), (cp, kind) in LAO_MARKS.items():
         near = parts(r, c)
@@ -320,11 +355,29 @@ def lao(consonants, syllables, out):
 
 # components of the typeset charts, numbered as scripts' dark components (gray < 100, area >= 12) sorted by
 # (round(cy / 40), cx); circles are the dotted placeholders of the base letter
-MYANMAR_VOWELS = {0x102D: [50], 0x102E: [51], 0x102F: [59], 0x1030: [60], 0x1031: [54], 0x102C: [118],
-                   0x102B: [121], 0x1032: [116]}
+MYANMAR_VOWELS = {
+    0x102D: [50],
+    0x102E: [51],
+    0x102F: [59],
+    0x1030: [60],
+    0x1031: [54],
+    0x102C: [118],
+    0x102B: [121],
+    0x1032: [116],
+}
 MYANMAR_SYMBOLS = {0x1037: [21], 0x1038: [15, 16], 0x103A: [12], 0x1036: [14]}
-MYANMAR_DIGITS = {0x1040: [113], 0x1041: [114], 0x1042: [115], 0x1043: [116], 0x1044: [117], 0x1045: [118],
-                  0x1046: [213], 0x1047: [214], 0x1048: [215], 0x1049: [216]}
+MYANMAR_DIGITS = {
+    0x1040: [113],
+    0x1041: [114],
+    0x1042: [115],
+    0x1043: [116],
+    0x1044: [117],
+    0x1045: [118],
+    0x1046: [213],
+    0x1047: [214],
+    0x1048: [215],
+    0x1049: [216],
+}
 MYANMAR_ORDER = "ကခဂဃငစဆဇဈညဋဌဍဎဏတထဒဓနပဖဗဘမယရလဝသဟဠအ"
 
 
@@ -346,7 +399,7 @@ def circles(g, dark_lab):
     for i in range(1, n):
         x, y, w, h, a = st[i]
         if 22 <= w <= 40 and 22 <= h <= 40 and 0.75 < w / h < 1.33:
-            inner = dark_lab[y + h // 4:y + 3 * h // 4, x + w // 4:x + 3 * w // 4]
+            inner = dark_lab[y + h // 4 : y + 3 * h // 4, x + w // 4 : x + 3 * w // 4]
             if not inner.any():
                 out.append((x + 2, y + 2, x + w - 2, y + h - 2))
     return out
@@ -390,6 +443,7 @@ def myanmar(c17, c12, c13, c15, out):
     ma_w = widths[ord("မ")] * scale
     adv_ref = float(np.percentile([w * scale for w in widths.values()], 85)) + 80
     ents = {cp: (g_, adv_ref) for cp, (g_, _) in ents.items()}
+
     def from_circles(img, spec, k_from="circle"):
         gg, lb, s2, c2, big = numbered(img)
         circ = circles(gg, np.isin(lb, big))
@@ -399,7 +453,8 @@ def myanmar(c17, c12, c13, c15, out):
         for cp, idx in spec.items():
             comp = [big[j] for j in idx]
             m = np.isin(lb, comp).astype(np.uint8)
-            cx = np.mean([c2[i][0] for i in comp]); cy = np.mean([c2[i][1] for i in comp])
+            cx = np.mean([c2[i][0] for i in comp])
+            cy = np.mean([c2[i][1] for i in comp])
             cx0, cy0, cx1, cy1 = min(circ, key=lambda c: abs((c[0] + c[2]) / 2 - cx) + abs((c[1] + c[3]) / 2 - cy))
             right = cp in (0x102C, 0x102B)
             x0 = min(s2[i][0] for i in comp)
@@ -412,7 +467,7 @@ def myanmar(c17, c12, c13, c15, out):
     gg, lb, s3, c3, big3 = numbered(c13)
     ma13 = s3[big3[135]]
     k13 = ma_w / ma13[2]
-    tpl = (lb[ma13[1]:ma13[1] + ma13[3], ma13[0]:ma13[0] + ma13[2]] == big3[135]).astype(np.uint8)
+    tpl = (lb[ma13[1] : ma13[1] + ma13[3], ma13[0] : ma13[0] + ma13[2]] == big3[135]).astype(np.uint8)
     for cp, idx in ((0x103D, [136]), (0x103E, [140])):
         comp = [big3[j] for j in idx]
         m = np.isin(lb, comp).astype(np.uint8)
@@ -421,15 +476,17 @@ def myanmar(c17, c12, c13, c15, out):
     for cp, cell in ((0x103B, 38), (0x103C, 42)):
         cs = s3[big3[cell]]
         sub = np.zeros_like(lb, np.uint8)
-        sub[cs[1]:cs[1] + cs[3], cs[0]:cs[0] + cs[2]] = (lb[cs[1]:cs[1] + cs[3], cs[0]:cs[0] + cs[2]] == big3[cell])
-        pad = np.pad(sub[cs[1]:cs[1] + cs[3], cs[0]:cs[0] + cs[2]], 20)
+        sub[cs[1] : cs[1] + cs[3], cs[0] : cs[0] + cs[2]] = (
+            lb[cs[1] : cs[1] + cs[3], cs[0] : cs[0] + cs[2]] == big3[cell]
+        )
+        pad = np.pad(sub[cs[1] : cs[1] + cs[3], cs[0] : cs[0] + cs[2]], 20)
         res = cv2.matchTemplate(pad.astype(np.float32), tpl.astype(np.float32), cv2.TM_CCORR)
         _, _, _, (mx, my) = cv2.minMaxLoc(res)
         host = np.zeros_like(pad)
-        host[my:my + ma13[3], mx:mx + ma13[2]] = tpl
+        host[my : my + ma13[3], mx : mx + ma13[2]] = tpl
         mark = (pad & ~cv2.dilate(host, np.ones((5, 5), np.uint8)))[20:-20, 20:-20]
         full = np.zeros_like(lb, np.uint8)
-        full[cs[1]:cs[1] + cs[3], cs[0]:cs[0] + cs[2]] = mark
+        full[cs[1] : cs[1] + cs[3], cs[0] : cs[0] + cs[2]] = mark
         bx, by = cs[0] + mx - 20, cs[1] + my - 20
         ents[cp] = (shifted(glyph(full, bx, by + ma13[3], k13), -adv_ref), 0)
     from_circles(c12, MYANMAR_VOWELS)
@@ -474,9 +531,41 @@ def gurmukhi(img, out):
     write(out, ents, "ChartGurmukhi")
 
 
-GEEZ_BASES = [0x1200, 0x1208, 0x1210, 0x1218, 0x1220, 0x1228, 0x1230, 0x1238, 0x1240, 0x1260, 0x1270, 0x1278, 0x1280,
-              0x1290, 0x1298, 0x12A0, 0x12A8, 0x12B8, 0x12C8, 0x12D0, 0x12D8, 0x12E0, 0x12E8, 0x12F0, 0x1300, 0x1308,
-              0x1320, 0x1328, 0x1330, 0x1338, 0x1340, 0x1348, 0x1350]
+GEEZ_BASES = [
+    0x1200,
+    0x1208,
+    0x1210,
+    0x1218,
+    0x1220,
+    0x1228,
+    0x1230,
+    0x1238,
+    0x1240,
+    0x1260,
+    0x1270,
+    0x1278,
+    0x1280,
+    0x1290,
+    0x1298,
+    0x12A0,
+    0x12A8,
+    0x12B8,
+    0x12C8,
+    0x12D0,
+    0x12D8,
+    0x12E0,
+    0x12E8,
+    0x12F0,
+    0x1300,
+    0x1308,
+    0x1320,
+    0x1328,
+    0x1330,
+    0x1338,
+    0x1340,
+    0x1348,
+    0x1350,
+]
 
 
 def geez(img, out):
@@ -528,6 +617,7 @@ if __name__ == "__main__":
     elif kind == "georgian" and len(sys.argv) > 4:
         georgian(load(sys.argv[2]), sys.argv[3], load(sys.argv[4]))
     else:
-        {"georgian": georgian, "armenian": armenian, "tibetan": tibetan, "gurmukhi": gurmukhi,
-         "geez": geez}[kind](load(sys.argv[2]), sys.argv[3])
+        {"georgian": georgian, "armenian": armenian, "tibetan": tibetan, "gurmukhi": gurmukhi, "geez": geez}[kind](
+            load(sys.argv[2]), sys.argv[3]
+        )
     print("written", sys.argv[-1])

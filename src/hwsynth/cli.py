@@ -20,7 +20,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from .config import PERSONS, STYLES, QDCfg, Paths
+from .config import PERSONS, STYLES, Paths, QDCfg
 
 SAMPLES = {
     "Latin (en)": "The quick brown fox jumps over the lazy dog.",
@@ -212,9 +212,7 @@ def cmd_coverage(a):
     c = coverage()
     from .scripts import all_scripts
 
-    print(
-        f"{len(c)} of {len(all_scripts())} Unicode scripts have a handwriting font"
-    )
+    print(f"{len(c)} of {len(all_scripts())} Unicode scripts have a handwriting font")
     if a.list:
         for s, v in sorted(c.items()):
             print(f"{s:28s} {v}")
