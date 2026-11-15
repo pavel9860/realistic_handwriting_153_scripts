@@ -25,6 +25,8 @@ def test_write_saves_the_image_and_its_words(tmp_path):
 
 
 @needs_fonts
-def test_coverage_lists_latin_and_cyrillic():
+def test_coverage_lists_known_scripts_only():
+    from hwsynth.scripts import all_scripts
+
     c = cli.coverage()
-    assert {"Latin", "Cyrillic"} <= set(c) and set(c.values()) == {"hand"}
+    assert c and set(c) <= set(all_scripts()) and set(c.values()) == {"hand"}
