@@ -132,14 +132,7 @@ examples/      sheets produced by `hwsynth examples`
 paper/         paper (LaTeX + PDF)
 ```
 
-## Pages and forms (`hwsynth.pagegen`)
-
-Full handwritten pages (letters, notes, lists, ruled and blank paper) and printed PDF forms filled by one writer, with
-text-line boxes. `pip install "hwsynth[pages]"`; see [docs/PAGEGEN.md](docs/PAGEGEN.md).
-
-```bash
-python scripts/generate_page.py out.png 1 plain
-```
+Pages, forms and layouts built from these lines live in [ds-page-generation](https://github.com/pavel9860/ds-page-generation) (`dspages.pagegen`).
 
 ## License
 

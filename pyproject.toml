@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hwsynth"
-version = "0.2.0"
+version = "0.2.1"
 description = "Natural synthetic handwriting in almost every Unicode script: writer types, styles, pens, evolved writer banks"
 readme = "README.md"
 license = "Apache-2.0"
@@ -20,7 +20,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-pages = ["pymupdf>=1.24,<1.28"]                      # hwsynth.pagegen: handwriting on PDF pages and forms
 evolve = ["torch>=2.2", "torchvision>=0.17", "pymupdf>=1.24"]
 dev = ["pytest>=8", "pytest-xdist>=3.5"]
 
